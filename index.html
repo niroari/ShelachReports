@@ -165,6 +165,18 @@
     }
     .btn-print:hover { background: #196f3d; }
 
+    .btn-clear {
+      background: #c0392b;
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      font-size: 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-clear:hover { background: #a93226; }
+
     /* עמוד PDF — ממוקם מחוץ למסך, ייצואלי בלבד */
     #pdfPage {
       position: fixed;
@@ -639,6 +651,7 @@
         <option value="2026">2026</option>
       </select>
       <button class="btn-print" onclick="printReport()">ייצא PDF ⬇</button>
+      <button class="btn-clear" onclick="clearReport()">נקה נתונים</button>
     </div>
 
     <div class="report-table-wrap">
@@ -1066,6 +1079,15 @@
     data['_signature'] = sigIsEmpty() ? '' : sigCanvas.toDataURL();
 
     localStorage.setItem(reportKey(month, year), JSON.stringify(data));
+  }
+
+  function clearReport() {
+    const month = parseInt(document.getElementById('selectMonth').value);
+    const year  = parseInt(document.getElementById('selectYear').value);
+    const monthName = document.getElementById('selectMonth').selectedOptions[0].text;
+    if (!confirm('למחוק את כל הנתונים של ' + monthName + ' ' + year + '?')) return;
+    localStorage.removeItem(reportKey(month, year));
+    loadReport(month, year);
   }
 
   function loadReport(month, year) {
