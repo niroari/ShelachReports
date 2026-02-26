@@ -1029,16 +1029,11 @@
 
       if (vacation) {
         row.classList.add('row-vacation');
-        inputs.forEach(inp => { inp.disabled = true; inp.value = ''; });
-        descInput.value = vacation;
+        row.dataset.vacationLabel = vacation;
       } else {
         row.classList.remove('row-vacation');
-        inputs.forEach(inp => { inp.disabled = false; });
-        if (descInput.value === descInput.dataset.lastVacation) descInput.value = '';
-        descInput.dataset.lastVacation = '';
+        row.dataset.vacationLabel = '';
       }
-
-      if (vacation) descInput.dataset.lastVacation = vacation;
     });
 
     loadReport(month, year);
@@ -1057,7 +1052,6 @@
 
     document.querySelectorAll('#reportBody tr').forEach(row => {
       if (row.style.display === 'none') return;
-      if (row.classList.contains('row-vacation')) return;
       const day    = row.dataset.day;
       const inputs = row.querySelectorAll('input');
       data[day] = {
@@ -1093,8 +1087,9 @@
   function loadReport(month, year) {
     // נקה הכל לפני טעינת החודש החדש
     document.querySelectorAll('#reportBody tr').forEach(row => {
-      if (row.classList.contains('row-vacation')) return;
       row.querySelectorAll('input').forEach(inp => { inp.value = ''; });
+      // שחזר שם חג כברירת מחדל לשדה התיאור
+      if (row.dataset.vacationLabel) row.querySelectorAll('input')[3].value = row.dataset.vacationLabel;
     });
     document.getElementById('note-chet').value      = '';
     document.getElementById('note-tet').value       = '';
@@ -1108,14 +1103,13 @@
     const data = JSON.parse(raw);
 
     document.querySelectorAll('#reportBody tr').forEach(row => {
-      if (row.classList.contains('row-vacation')) return;
       const day = row.dataset.day;
       if (!data[day]) return;
       const inputs = row.querySelectorAll('input');
       inputs[0].value = data[day].hours       || '';
       inputs[1].value = data[day].substitute  || '';
       inputs[2].value = data[day].kita        || '';
-      inputs[3].value = data[day].description || '';
+      inputs[3].value = data[day].description || (row.dataset.vacationLabel || '');
       inputs[4].value = data[day].reason      || '';
     });
 
@@ -1143,7 +1137,6 @@
     let total = 0;
     document.querySelectorAll('#reportBody tr').forEach(row => {
       if (row.style.display === 'none') return;
-      if (row.classList.contains('row-vacation')) return;
       const v = parseFloat(row.querySelectorAll('input')[1].value) || 0;
       total += v;
     });
@@ -1353,11 +1346,11 @@
         const reportRow = document.querySelector(`#reportBody tr[data-day="${day}"]`);
         const inputs    = reportRow ? reportRow.querySelectorAll('input') : [];
 
-        const hours   = vacation ? '' : (inputs[0]?.value || '');
-        const shanan  = vacation ? '' : (inputs[1]?.value || '');
-        const kita    = vacation ? '' : (inputs[2]?.value || '');
-        const desc    = vacation ? vacation : (inputs[3]?.value || '');
-        const reason  = vacation ? '' : (inputs[4]?.value || '');
+        const hours   = inputs[0]?.value || '';
+        const shanan  = inputs[1]?.value || '';
+        const kita    = inputs[2]?.value || '';
+        const desc    = inputs[3]?.value || '';
+        const reason  = inputs[4]?.value || '';
         let note = RIGHT_NOTES[day] || '';
         // הוסף תוכן הערות שמולא על ידי המשתמש
         if (day === 2  && pdfNotes.chet)      note += '<br>' + pdfNotes.chet;
