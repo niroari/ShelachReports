@@ -1702,6 +1702,7 @@
     data['_signature'] = sigIsEmpty() ? '' : sigCanvas.toDataURL();
 
     localStorage.setItem(reportKey(month, year), JSON.stringify(data));
+    saveToCloud('reports', reportKey(month, year), data);
   }
 
   function clearReport() {
@@ -1710,27 +1711,14 @@
     const monthName = document.getElementById('selectMonth').selectedOptions[0].text;
     if (!confirm('למחוק את כל הנתונים של ' + monthName + ' ' + year + '?')) return;
     localStorage.removeItem(reportKey(month, year));
+    if (auth.currentUser) {
+      const uid = auth.currentUser.uid;
+      db.collection('users').doc(uid).collection('reports').doc(reportKey(month, year)).delete();
+    }
     loadReport(month, year);
   }
 
-  function loadReport(month, year) {
-    // נקה הכל לפני טעינת החודש החדש
-    document.querySelectorAll('#reportBody tr').forEach(row => {
-      row.querySelectorAll('input').forEach(inp => { inp.value = ''; });
-      // שחזר שם חג כברירת מחדל לשדה התיאור
-      if (row.dataset.vacationLabel) row.querySelectorAll('input')[3].value = row.dataset.vacationLabel;
-    });
-    document.getElementById('note-chet').value      = '';
-    document.getElementById('note-tet').value       = '';
-    document.getElementById('note-masaot').value    = '';
-    document.getElementById('note-mishatzim').value = '';
-    document.getElementById('reportDate').value     = '';
-    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
-
-    const raw = localStorage.getItem(reportKey(month, year));
-    if (!raw) { updateTotal(); return; }
-    const data = JSON.parse(raw);
-
+  function applyReport(data) {
     document.querySelectorAll('#reportBody tr').forEach(row => {
       const day = row.dataset.day;
       if (!data[day]) return;
@@ -1741,24 +1729,44 @@
       inputs[3].value = data[day].description || (row.dataset.vacationLabel || '');
       inputs[4].value = data[day].reason      || '';
     });
-
-    // שחזור הערות הנושאים
     if (data['_notes']) {
       document.getElementById('note-chet').value      = data['_notes'].chet      || '';
       document.getElementById('note-tet').value       = data['_notes'].tet       || '';
       document.getElementById('note-masaot').value    = data['_notes'].masaot    || '';
       document.getElementById('note-mishatzim').value = data['_notes'].mishatzim || '';
     }
-
-    // שחזור תאריך וחתימה
     if (data['_date']) document.getElementById('reportDate').value = data['_date'];
     if (data['_signature']) {
       const img = new Image();
       img.onload = () => sigCtx.drawImage(img, 0, 0);
       img.src = data['_signature'];
     }
-
     updateTotal();
+  }
+
+  async function loadReport(month, year) {
+    // Clear everything first
+    document.querySelectorAll('#reportBody tr').forEach(row => {
+      row.querySelectorAll('input').forEach(inp => { inp.value = ''; });
+      if (row.dataset.vacationLabel) row.querySelectorAll('input')[3].value = row.dataset.vacationLabel;
+    });
+    document.getElementById('note-chet').value      = '';
+    document.getElementById('note-tet').value       = '';
+    document.getElementById('note-masaot').value    = '';
+    document.getElementById('note-mishatzim').value = '';
+    document.getElementById('reportDate').value     = '';
+    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+
+    // Try Firestore first, fall back to localStorage
+    const cloud = await loadFromCloud('reports', reportKey(month, year));
+    if (cloud) {
+      localStorage.setItem(reportKey(month, year), JSON.stringify(cloud));
+      applyReport(cloud);
+    } else {
+      const raw = localStorage.getItem(reportKey(month, year));
+      if (!raw) { updateTotal(); return; }
+      applyReport(JSON.parse(raw));
+    }
   }
 
   // עדכון סה"כ שעות — מסכם את עמודת ש"נ/מ"מ
