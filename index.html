@@ -2059,13 +2059,11 @@
 
   // עדכון תצוגת פרטים קבועים מההגדרות
   function refreshEshelInfo() {
-    const raw = localStorage.getItem('shelach_settings');
-    const s = raw ? JSON.parse(raw) : {};
-    document.getElementById('eshel-info-id').textContent        = s.idNumber  || '';
-    document.getElementById('eshel-info-firstname').textContent = s.firstName || '';
-    document.getElementById('eshel-info-lastname').textContent  = s.lastName  || '';
-    document.getElementById('eshel-info-homecity').textContent  = s.homeCity  || '';
-    document.getElementById('eshel-info-workplace').textContent = s.workplace || '';
+    document.getElementById('eshel-info-id').textContent        = document.getElementById('idNumber').value;
+    document.getElementById('eshel-info-firstname').textContent = document.getElementById('firstName').value;
+    document.getElementById('eshel-info-lastname').textContent  = document.getElementById('lastName').value;
+    document.getElementById('eshel-info-homecity').textContent  = document.getElementById('homeCity').value;
+    document.getElementById('eshel-info-workplace').textContent = document.getElementById('workplace').value;
   }
 
   function saveEshel() {
