@@ -454,7 +454,61 @@
 
     /* notes-section צמוד יותר */
     .notes-section { padding: 14px 14px; }
+
+    /* חתימה — עמודה אחת במובייל */
+    .sig-row { flex-direction: column; }
+    .sig-date { flex: none; width: 100%; }
   }
+
+  /* חתימה ותאריך */
+  .sig-row {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .sig-date {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 0 0 180px;
+  }
+  .sig-date input[type="date"] {
+    padding: 9px 12px;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-family: inherit;
+  }
+  .sig-canvas-wrap {
+    flex: 1;
+    min-width: 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  #signatureCanvas {
+    display: block;
+    width: 100%;
+    height: 110px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: white;
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .btn-clear-sig {
+    align-self: flex-start;
+    padding: 6px 16px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #f5f5f5;
+    cursor: pointer;
+    font-family: inherit;
+    color: #555;
+  }
+  .btn-clear-sig:hover { background: #eee; }
   </style>
 </head>
 <body>
@@ -668,6 +722,22 @@
     </div>
   </div>
 
+  <!-- חתימה ותאריך -->
+  <div class="notes-section">
+    <h3>חתימה ותאריך</h3>
+    <div class="sig-row">
+      <div class="sig-date">
+        <label for="reportDate">תאריך מילוי</label>
+        <input type="date" id="reportDate">
+      </div>
+      <div class="sig-canvas-wrap">
+        <label>חתימת המורה (צייר עם האצבע או העכבר)</label>
+        <canvas id="signatureCanvas" width="600" height="110"></canvas>
+        <button type="button" class="btn-clear-sig" onclick="clearSignature()">✕ נקה חתימה</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- עמוד PDF — מחוץ למסך, נוצר דינמית -->
@@ -806,9 +876,9 @@
   <table style="width:100%;margin-top:10px;font-size:8.5pt;">
     <tr>
       <!-- ימין: חתימת המורה (עמודה ראשונה = ימין ב-RTL) -->
-      <td style="text-align:right;">חתימת המורה: ____________________</td>
+      <td style="text-align:right;vertical-align:middle;" id="pdf-sig-cell">חתימת המורה: ____________________</td>
       <!-- שמאל: תאריך -->
-      <td style="text-align:left;width:160px;">תאריך: ___________</td>
+      <td style="text-align:left;width:160px;" id="pdf-date-cell">תאריך: ___________</td>
     </tr>
   </table>
 
@@ -992,16 +1062,20 @@
       masaot:    document.getElementById('note-masaot').value,
       mishatzim: document.getElementById('note-mishatzim').value,
     };
+    data['_date']      = document.getElementById('reportDate').value;
+    data['_signature'] = sigIsEmpty() ? '' : sigCanvas.toDataURL();
 
     localStorage.setItem(reportKey(month, year), JSON.stringify(data));
   }
 
   function loadReport(month, year) {
-    // נקה הערות לפני הטעינה (למקרה שאין נתונים לחודש זה)
+    // נקה הערות, חתימה ותאריך לפני הטעינה
     document.getElementById('note-chet').value      = '';
     document.getElementById('note-tet').value       = '';
     document.getElementById('note-masaot').value    = '';
     document.getElementById('note-mishatzim').value = '';
+    document.getElementById('reportDate').value     = '';
+    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
 
     const raw = localStorage.getItem(reportKey(month, year));
     if (!raw) return;
@@ -1025,6 +1099,14 @@
       document.getElementById('note-tet').value       = data['_notes'].tet       || '';
       document.getElementById('note-masaot').value    = data['_notes'].masaot    || '';
       document.getElementById('note-mishatzim').value = data['_notes'].mishatzim || '';
+    }
+
+    // שחזור תאריך וחתימה
+    if (data['_date']) document.getElementById('reportDate').value = data['_date'];
+    if (data['_signature']) {
+      const img = new Image();
+      img.onload = () => sigCtx.drawImage(img, 0, 0);
+      img.src = data['_signature'];
     }
 
     updateTotal();
@@ -1052,6 +1134,56 @@
   ['note-chet', 'note-tet', 'note-masaot', 'note-mishatzim'].forEach(id => {
     document.getElementById(id).addEventListener('input', saveReport);
   });
+
+  // שמירה אוטומטית של תאריך
+  document.getElementById('reportDate').addEventListener('change', saveReport);
+
+  // --- חתימה ---
+  const sigCanvas = document.getElementById('signatureCanvas');
+  const sigCtx    = sigCanvas.getContext('2d');
+  let isDrawing = false, lastX = 0, lastY = 0;
+
+  function sigPos(e) {
+    const rect = sigCanvas.getBoundingClientRect();
+    const src  = e.touches ? e.touches[0] : e;
+    return {
+      x: (src.clientX - rect.left) * (sigCanvas.width  / rect.width),
+      y: (src.clientY - rect.top)  * (sigCanvas.height / rect.height),
+    };
+  }
+
+  function sigIsEmpty() {
+    return !sigCtx.getImageData(0, 0, sigCanvas.width, sigCanvas.height).data.some(v => v !== 0);
+  }
+
+  function clearSignature() {
+    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+    saveReport();
+  }
+
+  sigCanvas.addEventListener('mousedown',  e => { isDrawing = true;  const p = sigPos(e); lastX = p.x; lastY = p.y; });
+  sigCanvas.addEventListener('mousemove',  e => {
+    if (!isDrawing) return;
+    const p = sigPos(e);
+    sigCtx.beginPath(); sigCtx.moveTo(lastX, lastY); sigCtx.lineTo(p.x, p.y);
+    sigCtx.strokeStyle = '#000'; sigCtx.lineWidth = 2; sigCtx.lineCap = 'round';
+    sigCtx.stroke();
+    lastX = p.x; lastY = p.y;
+  });
+  sigCanvas.addEventListener('mouseup',    () => { if (isDrawing) { isDrawing = false; saveReport(); } });
+  sigCanvas.addEventListener('mouseleave', () => { if (isDrawing) { isDrawing = false; saveReport(); } });
+
+  sigCanvas.addEventListener('touchstart', e => { e.preventDefault(); isDrawing = true;  const p = sigPos(e); lastX = p.x; lastY = p.y; }, { passive: false });
+  sigCanvas.addEventListener('touchmove',  e => {
+    e.preventDefault();
+    if (!isDrawing) return;
+    const p = sigPos(e);
+    sigCtx.beginPath(); sigCtx.moveTo(lastX, lastY); sigCtx.lineTo(p.x, p.y);
+    sigCtx.strokeStyle = '#000'; sigCtx.lineWidth = 2.5; sigCtx.lineCap = 'round';
+    sigCtx.stroke();
+    lastX = p.x; lastY = p.y;
+  }, { passive: false });
+  sigCanvas.addEventListener('touchend', () => { if (isDrawing) { isDrawing = false; saveReport(); } });
 
   // ניווט מקלדת בטבלה
   document.getElementById('reportBody').addEventListener('keydown', function(e) {
@@ -1165,6 +1297,13 @@
         document.getElementById('pdf-sc' + i).textContent = s.school?.[i]  || '';
       });
 
+      // חתימה ותאריך
+      const sigDataUrl  = sigIsEmpty() ? '' : sigCanvas.toDataURL();
+      const rawDate     = document.getElementById('reportDate').value;
+      const dateDisplay = rawDate
+        ? new Date(rawDate + 'T00:00:00').toLocaleDateString('he-IL')
+        : '___________';
+
       // קריאת הערות הנושאים
       const pdfNotes = {
         chet:      document.getElementById('note-chet').value,
@@ -1217,6 +1356,16 @@
       }
 
       document.getElementById('pdf-total').textContent = totalHours || 0;
+
+      // חתימה ותאריך בתחתית ה-PDF
+      const sigCell  = document.getElementById('pdf-sig-cell');
+      const dateCell = document.getElementById('pdf-date-cell');
+      if (sigDataUrl) {
+        sigCell.innerHTML = 'חתימת המורה: <img src="' + sigDataUrl + '" style="height:28px;vertical-align:middle;margin-right:4px;">';
+      } else {
+        sigCell.textContent = 'חתימת המורה: ____________________';
+      }
+      dateCell.textContent = 'תאריך: ' + dateDisplay;
 
       // צילום עם html2canvas
       const canvas = await html2canvas(document.getElementById('pdfPage'), {
