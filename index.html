@@ -207,6 +207,77 @@
     }
     .btn-excel:hover { background: #155232; }
 
+    .btn-sign {
+      background: #7d3c98;
+      color: white;
+      border: none;
+      padding: 9px 22px;
+      font-size: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+    }
+    .btn-sign:hover { background: #6c3483; }
+
+    /* מודל שיתוף לינק חתימה */
+    #signModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+    #signModal.open { display: flex; }
+    .sign-modal-box {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      width: 92%;
+      max-width: 500px;
+      direction: rtl;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+    }
+    .sign-modal-box h2 { margin: 0 0 8px; font-size: 18px; }
+    .sign-modal-box p  { color: #555; font-size: 14px; margin: 0 0 20px; }
+    #signLink {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 13px;
+      direction: ltr;
+      text-align: left;
+      background: #f8f8f8;
+      box-sizing: border-box;
+      margin-bottom: 12px;
+    }
+    #signCopyBtn {
+      background: #7d3c98;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      margin-left: 10px;
+    }
+    #signCopyBtn:hover { background: #6c3483; }
+    .sign-status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .sign-status-badge.pending  { background: #fff3cd; color: #856404; }
+    .sign-status-badge.signed   { background: #d4edda; color: #155724; }
+
     /* עמוד PDF — ממוקם מחוץ למסך, ייצואלי בלבד */
     #pdfPage {
       position: fixed;
@@ -909,6 +980,7 @@
       </select>
       <button class="btn-print" onclick="printReport()">ייצא PDF ⬇</button>
       <button class="btn-excel" onclick="exportReportToExcel()">ייצא אקסל ⬇</button>
+      <button class="btn-sign" onclick="createSignatureRequest()">שלח לחתימת מנהל/ת ✍</button>
       <button class="btn-clear" onclick="clearReport()">נקה נתונים</button>
     </div>
 
@@ -2375,6 +2447,80 @@
     XLSX.writeFile(wb, `אשל-${monthName}-${year}.xlsx`);
   }
 
+  // --- חתימת מנהל ---
+
+  async function createSignatureRequest() {
+    if (!auth.currentUser) { alert('יש להתחבר תחילה'); return; }
+
+    const month = parseInt(document.getElementById('selectMonth').value);
+    const year  = parseInt(document.getElementById('selectYear').value);
+    const monthName = MONTH_NAMES[month];
+
+    const teacherName = [
+      document.getElementById('firstName').value,
+      document.getElementById('lastName').value,
+    ].filter(Boolean).join(' ') || 'מורה';
+    const schoolName = document.getElementById('schoolName').value || '';
+
+    // Save current report state first
+    saveReport();
+
+    // Check if a request already exists for this month
+    const uid = auth.currentUser.uid;
+    const existing = await db.collection('signature_requests')
+      .where('teacherUid', '==', uid)
+      .where('year', '==', year)
+      .where('month', '==', month)
+      .get();
+
+    let docId;
+    if (!existing.empty) {
+      // Reuse existing request
+      docId = existing.docs[0].id;
+    } else {
+      // Create new request
+      const ref = await db.collection('signature_requests').add({
+        teacherUid:  uid,
+        teacherName: teacherName,
+        schoolName:  schoolName,
+        month:       month,
+        year:        year,
+        status:      'pending',
+        principalSignature: '',
+        createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      docId = ref.id;
+    }
+
+    const link = window.location.origin + window.location.pathname + '?sign=' + docId;
+    document.getElementById('signLink').value = link;
+
+    const status = existing.empty ? 'pending' : existing.docs[0].data().status;
+    const badge = document.getElementById('signStatusWrap');
+    if (status === 'signed') {
+      badge.innerHTML = '<span class="sign-status-badge signed">✓ הדוח נחתם על ידי המנהל/ת</span>';
+    } else {
+      badge.innerHTML = '<span class="sign-status-badge pending">ממתין לחתימה</span>';
+    }
+
+    document.getElementById('signModal').classList.add('open');
+  }
+
+  function closeSignModal() {
+    document.getElementById('signModal').classList.remove('open');
+    document.getElementById('signCopyBtn').textContent = 'העתק לינק';
+  }
+
+  function copySignLink() {
+    const link = document.getElementById('signLink').value;
+    navigator.clipboard.writeText(link).then(() => {
+      document.getElementById('signCopyBtn').textContent = '✓ הועתק!';
+      setTimeout(() => {
+        document.getElementById('signCopyBtn').textContent = 'העתק לינק';
+      }, 2000);
+    });
+  }
+
   // הפעלה ראשונית של אש"ל
   loadEshel(
     parseInt(document.getElementById('eshelMonth').value),
@@ -2382,6 +2528,22 @@
   );
 </script>
 
+<!-- מודל שיתוף לינק חתימת מנהל -->
+<div id="signModal">
+  <div class="sign-modal-box">
+    <h2>✍ שלח לחתימת מנהל/ת</h2>
+    <p>שלח את הלינק הבא למנהל/ת. הם יוכלו לפתוח אותו, לראות את הדוח ולחתום.</p>
+    <div id="signStatusWrap" style="margin-bottom:14px;"></div>
+    <input id="signLink" type="text" readonly>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button id="signCopyBtn" onclick="copySignLink()">העתק לינק</button>
+      <button onclick="closeSignModal()"
+        style="background:#eee;border:none;border-radius:8px;padding:10px 18px;font-size:14px;cursor:pointer;font-family:inherit;">
+        סגור
+      </button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
