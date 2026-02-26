@@ -6,6 +6,7 @@
   <title>דוח של"ח</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1362,6 +1363,12 @@
 </div>
 
 <script>
+  // --- EmailJS ---
+  const EMAILJS_SERVICE_ID  = 'service_dgrvly8';
+  const EMAILJS_TEMPLATE_ID = 'template_p5i1y18';
+  const EMAILJS_PUBLIC_KEY  = '8IUAL6cAW8wqX18fV';
+  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
   // מעבר בין דפים
   function showPage(name) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -2282,16 +2289,34 @@
     const monthName = MONTH_NAMES[month];
     const message   = document.getElementById('sendMessage').value.trim();
 
-    // הורד PDF
-    await printReport();
+    const sendBtn = document.getElementById('sendSubmitBtn');
+    sendBtn.textContent = '⏳ שולח...';
+    sendBtn.disabled = true;
 
-    // פתח אפליקציית מייל
-    const subject  = encodeURIComponent(`${name} - דוחות ${monthName}`);
-    const bodyText = (message ? message + '\n\n' : '') +
-      `מצורף דוח חודשי ${monthName} ${year}.\n(הקובץ הורד אוטומטית — יש לצרף אותו למייל)`;
-    window.open(`mailto:DOCHOTTELAVIV@gmail.com?subject=${subject}&body=${encodeURIComponent(bodyText)}`);
+    try {
+      // הורד PDF למכשיר
+      await printReport();
 
-    closeSendModal();
+      // שלח מייל דרך EmailJS
+      const bodyText = (message ? message + '\n\n' : '') +
+        `דוח חודשי ${monthName} ${year} מצורף כקובץ PDF.\nנשלח על ידי: ${name}`;
+
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        subject:   `${name} - דוחות ${monthName}`,
+        from_name: name,
+        message:   bodyText,
+      });
+
+      sendBtn.textContent = '✓ נשלח!';
+      sendBtn.style.background = '#27ae60';
+      setTimeout(() => closeSendModal(), 1800);
+
+    } catch(e) {
+      alert('שגיאה בשליחה: ' + (e.text || e.message || String(e)));
+      sendBtn.textContent = 'שלח ✉';
+      sendBtn.style.background = '';
+      sendBtn.disabled = false;
+    }
   }
 
   // הפעלה ראשונית של אש"ל
@@ -2322,7 +2347,7 @@
     </div>
 
     <div style="display:flex;gap:10px;">
-      <button onclick="confirmSend()"
+      <button id="sendSubmitBtn" onclick="confirmSend()"
         style="background:#2980b9;color:white;border:none;border-radius:8px;padding:11px 26px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">
         שלח ✉
       </button>
