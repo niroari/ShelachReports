@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Teacher's own data — only they can read or write
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Signature requests
+    match /signature_requests/{requestId} {
+
+      // Anyone can read — principal opens the link without logging in
+      allow read: if true;
+
+      // Only a logged-in teacher can create, and only for themselves
+      allow create: if request.auth != null
+        && request.resource.data.teacherUid == request.auth.uid;
+
+      // Two parties can update:
+      //   1. The teacher who owns the request (can change any field)
+      //   2. The principal (no login) — can ONLY set the three signature fields
+      allow update: if
+        (request.auth != null && resource.data.teacherUid == request.auth.uid)
+        ||
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['principalSignature', 'status', 'signedAt']);
+
+      // Only the teacher can delete their own request
+      allow delete: if request.auth != null
+        && resource.data.teacherUid == request.auth.uid;
+    }
+
+  }
+}
