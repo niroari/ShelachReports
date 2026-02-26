@@ -620,6 +620,13 @@
         <input type="number" id="school_fri" min="0" max="12" placeholder="0">
       </div>
 
+      <div class="form-group full section-title">פרטים נוספים לטופס</div>
+
+      <div class="form-group full">
+        <label>השעות השבועיות ניתנות בימים</label>
+        <input type="text" id="workDays" placeholder="למשל: א׳, ב׳, ד׳">
+      </div>
+
     </div>
 
     <div style="margin-top: 24px;">
@@ -825,7 +832,7 @@
       <th style="width:38px;text-align:center;">ד</th>
       <th style="width:38px;text-align:center;">ה</th>
       <th style="width:38px;text-align:center;">ו</th>
-      <td rowspan="2" style="font-size:7.5pt;text-align:right;vertical-align:top;padding:3px;">השעות השבועיות ניתנות בימים:<br>___________________________</td>
+      <td rowspan="2" style="font-size:7.5pt;text-align:right;vertical-align:top;padding:3px;">השעות השבועיות ניתנות בימים:<br><span id="pdf-workdays"></span></td>
     </tr>
     <tr>
       <td style="height:20px;"></td>
@@ -935,7 +942,8 @@
         document.getElementById('school_wed').value,
         document.getElementById('school_thu').value,
         document.getElementById('school_fri').value,
-      ]
+      ],
+      workDays: document.getElementById('workDays').value,
     };
 
     localStorage.setItem('shelach_settings', JSON.stringify(data));
@@ -977,6 +985,7 @@
       document.getElementById('shelach_' + day).value = d.shelach?.[i] ?? '';
       document.getElementById('school_'  + day).value = d.school?.[i]  ?? '';
     });
+    document.getElementById('workDays').value = d.workDays ?? '';
   }
 
   loadSettings();
@@ -1314,6 +1323,7 @@
       document.getElementById('pdf-jobscope').textContent   = s.jobScope      || '';
       document.getElementById('pdf-address').textContent    = s.address       || '';
       document.getElementById('pdf-substitute').textContent = s.substituteFor || '';
+      document.getElementById('pdf-workdays').textContent   = s.workDays      || '___________________________';
 
       // שעות
       [0,1,2,3,4,5].forEach(i => {
