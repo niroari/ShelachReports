@@ -984,7 +984,7 @@
   }
   .cal-day:hover { background: #eafaf1; border-color: #2ecc71; }
   .cal-day.has-data { background: #eafaf1; border-color: #27ae60; }
-  .cal-day.vacation { background: #f0f0f0; cursor: default; pointer-events: none; }
+  .cal-day.vacation { background: #f0f0f0; cursor: pointer; }
   .cal-day.selected { background: #dbeafe; border-color: #2980b9; }
   .cal-day-num { font-size: 17px; font-weight: 700; line-height: 1; color: #222; }
   .cal-day.vacation .cal-day-num { color: #aaa; }
@@ -2524,9 +2524,7 @@
         (vacation ? `<div class="cal-vacation-label">${vacation}</div>` : '') +
         (hasData && !vacation ? '<div class="cal-day-dot"></div>' : '');
 
-      if (!vacation) {
-        cell.onclick = () => _calMultiSelect ? toggleCalDay(day) : openDayPanel(day);
-      }
+      cell.onclick = () => _calMultiSelect ? toggleCalDay(day) : openDayPanel(day);
       grid.appendChild(cell);
     }
     container.appendChild(grid);
