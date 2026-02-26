@@ -1207,6 +1207,7 @@
         <button type="button" class="btn-clear-sig" onclick="clearSignature()">✕ נקה חתימה</button>
       </div>
     </div>
+    <div id="principalSigStatus" style="margin-top:18px;padding-top:16px;border-top:1px solid #eee;"></div>
   </div>
 
 </div>
@@ -1934,9 +1935,12 @@
       applyReport(cloud);
     } else {
       const raw = localStorage.getItem(reportKey(month, year));
-      if (!raw) { updateTotal(); return; }
-      applyReport(JSON.parse(raw));
+      if (!raw) { updateTotal(); }
+      else applyReport(JSON.parse(raw));
     }
+
+    // Load principal signature status for this month
+    loadPrincipalSignature(month, year);
   }
 
   // עדכון סה"כ שעות — מסכם את עמודת ש"נ/מ"מ
@@ -2165,6 +2169,10 @@
         if (day === 7  && pdfNotes.tet)       note += '<br>' + pdfNotes.tet;
         if (day === 16 && pdfNotes.masaot)    note += '<br>' + pdfNotes.masaot;
         if (day === 21 && pdfNotes.mishatzim) note += '<br>' + pdfNotes.mishatzim;
+        // חתימת מנהל/ת בשורה 27
+        if (day === 27 && _principalSigData) {
+          note = 'חתימת מנהל/ת:<br><img src="' + _principalSigData + '" style="max-height:22px;vertical-align:middle;">';
+        }
 
         if (shanan) totalHours += parseFloat(shanan) || 0;
 
@@ -2573,6 +2581,44 @@
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, monthName);
     XLSX.writeFile(wb, `אשל-${monthName}-${year}.xlsx`);
+  }
+
+  // --- חתימת מנהל — טעינה לדוח ---
+
+  let _principalSigData = null; // base64 of principal signature, or null
+
+  async function loadPrincipalSignature(month, year) {
+    _principalSigData = null;
+    const statusDiv = document.getElementById('principalSigStatus');
+    if (!statusDiv) return;
+
+    if (!auth.currentUser) {
+      statusDiv.innerHTML = '';
+      return;
+    }
+
+    statusDiv.innerHTML = '<span style="color:#aaa;font-size:13px;">בודק חתימת מנהל/ת...</span>';
+
+    const uid = auth.currentUser.uid;
+    const snap = await db.collection('signature_requests')
+      .where('teacherUid', '==', uid)
+      .where('year', '==', year)
+      .where('month', '==', month)
+      .get();
+
+    if (snap.empty || snap.docs[0].data().status !== 'signed') {
+      statusDiv.innerHTML = snap.empty
+        ? '<span style="color:#aaa;font-size:13px;">חתימת מנהל/ת: טרם נשלחה לחתימה</span>'
+        : '<span style="color:#b7860b;font-size:13px;">⏳ ממתין לחתימת מנהל/ת</span>';
+      return;
+    }
+
+    const sig = snap.docs[0].data().principalSignature;
+    _principalSigData = sig;
+    statusDiv.innerHTML = `
+      <div style="font-size:13px;font-weight:600;color:#155724;margin-bottom:8px;">✓ חתימת מנהל/ת התקבלה</div>
+      <img src="${sig}" style="max-height:60px;border:1px solid #ddd;border-radius:6px;padding:4px;background:#fff;">
+    `;
   }
 
   // --- חתימת מנהל ---
