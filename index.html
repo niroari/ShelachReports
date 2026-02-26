@@ -2096,18 +2096,47 @@
       signature: eshelSigIsEmpty() ? '' : eshelSigCanvas.toDataURL(),
     };
     localStorage.setItem(eshelKey(month, year), JSON.stringify(data));
+    saveToCloud('eshel', eshelKey(month, year), data);
   }
 
-  function loadEshel(month, year) {
-    // נקה הכל לפני טעינה
+  function applyEshel(data) {
+    const rows = document.querySelectorAll('#eshelBody tr');
+    (data.rows || []).forEach((rd, i) => {
+      if (i >= rows.length) return;
+      const row = rows[i];
+      row.querySelector('.eshel-date').value        = rd.date      || '';
+      row.querySelector('.eshel-dayname').value     = rd.dayname   || '';
+      row.querySelector('.eshel-from-time').value   = rd.fromTime  || '';
+      row.querySelector('.eshel-to-time').value     = rd.toTime    || '';
+      row.querySelector('.eshel-from-place').value  = rd.fromPlace || '';
+      row.querySelector('.eshel-to-place').value    = rd.toPlace   || '';
+      row.querySelector('.eshel-purpose').value     = rd.purpose   || '';
+      row.querySelector('.eshel-bein-iri').checked  = rd.beinIri   || false;
+      row.querySelector('.eshel-iri').checked       = rd.iri       || false;
+      row.querySelector('.eshel-boker').checked     = rd.boker     || false;
+      row.querySelector('.eshel-tsaharaim').checked = rd.tsaharaim || false;
+      row.querySelector('.eshel-erev').checked      = rd.erev      || false;
+      row.querySelector('.eshel-lina').checked      = rd.lina      || false;
+      row.querySelector('.eshel-total').value       = rd.total     || '';
+    });
+    if (data.date) document.getElementById('eshelDate').value = data.date;
+    if (data.signature) {
+      const img = new Image();
+      img.onload = () => eshelSigCtx.drawImage(img, 0, 0);
+      img.src = data.signature;
+    }
+  }
+
+  async function loadEshel(month, year) {
+    // Clear everything first
     document.querySelectorAll('#eshelBody tr').forEach(row => {
-      row.querySelector('.eshel-date').value       = '';
-      row.querySelector('.eshel-dayname').value    = '';
-      row.querySelector('.eshel-from-time').value  = '';
-      row.querySelector('.eshel-to-time').value    = '';
-      row.querySelector('.eshel-from-place').value = '';
-      row.querySelector('.eshel-to-place').value   = '';
-      row.querySelector('.eshel-purpose').value    = '';
+      row.querySelector('.eshel-date').value        = '';
+      row.querySelector('.eshel-dayname').value     = '';
+      row.querySelector('.eshel-from-time').value   = '';
+      row.querySelector('.eshel-to-time').value     = '';
+      row.querySelector('.eshel-from-place').value  = '';
+      row.querySelector('.eshel-to-place').value    = '';
+      row.querySelector('.eshel-purpose').value     = '';
       row.querySelector('.eshel-bein-iri').checked  = false;
       row.querySelector('.eshel-iri').checked       = false;
       row.querySelector('.eshel-boker').checked     = false;
@@ -2119,35 +2148,15 @@
     document.getElementById('eshelDate').value = '';
     eshelSigCtx.clearRect(0, 0, eshelSigCanvas.width, eshelSigCanvas.height);
 
-    const raw = localStorage.getItem(eshelKey(month, year));
-    if (!raw) return;
-    const data = JSON.parse(raw);
-
-    const rows = document.querySelectorAll('#eshelBody tr');
-    (data.rows || []).forEach((rd, i) => {
-      if (i >= rows.length) return;
-      const row = rows[i];
-      row.querySelector('.eshel-date').value       = rd.date      || '';
-      row.querySelector('.eshel-dayname').value    = rd.dayname   || '';
-      row.querySelector('.eshel-from-time').value  = rd.fromTime  || '';
-      row.querySelector('.eshel-to-time').value    = rd.toTime    || '';
-      row.querySelector('.eshel-from-place').value = rd.fromPlace || '';
-      row.querySelector('.eshel-to-place').value   = rd.toPlace   || '';
-      row.querySelector('.eshel-purpose').value    = rd.purpose   || '';
-      row.querySelector('.eshel-bein-iri').checked  = rd.beinIri   || false;
-      row.querySelector('.eshel-iri').checked       = rd.iri       || false;
-      row.querySelector('.eshel-boker').checked     = rd.boker     || false;
-      row.querySelector('.eshel-tsaharaim').checked = rd.tsaharaim || false;
-      row.querySelector('.eshel-erev').checked      = rd.erev      || false;
-      row.querySelector('.eshel-lina').checked      = rd.lina      || false;
-      row.querySelector('.eshel-total').value       = rd.total     || '';
-    });
-
-    if (data.date) document.getElementById('eshelDate').value = data.date;
-    if (data.signature) {
-      const img = new Image();
-      img.onload = () => eshelSigCtx.drawImage(img, 0, 0);
-      img.src = data.signature;
+    // Try Firestore first, fall back to localStorage
+    const cloud = await loadFromCloud('eshel', eshelKey(month, year));
+    if (cloud) {
+      localStorage.setItem(eshelKey(month, year), JSON.stringify(cloud));
+      applyEshel(cloud);
+    } else {
+      const raw = localStorage.getItem(eshelKey(month, year));
+      if (!raw) return;
+      applyEshel(JSON.parse(raw));
     }
   }
 
@@ -2157,6 +2166,10 @@
     const monthName = document.getElementById('eshelMonth').selectedOptions[0].text;
     if (!confirm('למחוק את כל נתוני האש"ל של ' + monthName + ' ' + year + '?')) return;
     localStorage.removeItem(eshelKey(month, year));
+    if (auth.currentUser) {
+      const uid = auth.currentUser.uid;
+      db.collection('users').doc(uid).collection('eshel').doc(eshelKey(month, year)).delete();
+    }
     loadEshel(month, year);
   }
 
