@@ -1456,7 +1456,7 @@
       <tr>
         <td colspan="2" style="font-weight:bold;text-align:right;">סה"כ שעות:</td>
         <td id="pdf-total" style="text-align:center;"></td>
-        <td colspan="4" style="text-align:right;">חתימת המנהל: ___________________________</td>
+        <td id="pdf-principal-sig" colspan="4" style="text-align:right;">חתימת המנהל: ___________________________</td>
         <td></td>
       </tr>
     </tfoot>
@@ -2173,10 +2173,6 @@
         if (day === 7  && pdfNotes.tet)       note += '<br>' + pdfNotes.tet;
         if (day === 16 && pdfNotes.masaot)    note += '<br>' + pdfNotes.masaot;
         if (day === 21 && pdfNotes.mishatzim) note += '<br>' + pdfNotes.mishatzim;
-        // חתימת מנהל/ת בשורה 27
-        if (day === 27 && _principalSigData) {
-          note = 'חתימת מנהל/ת:<br><img src="' + _principalSigData + '" style="max-height:22px;vertical-align:middle;">';
-        }
 
         if (shanan) totalHours += parseFloat(shanan) || 0;
 
@@ -2205,6 +2201,14 @@
         sigCell.textContent = 'חתימת המורה: ____________________';
       }
       dateCell.textContent = 'תאריך: ' + dateDisplay;
+
+      // חתימת מנהל/ת בשורת סה"כ שעות
+      const principalCell = document.getElementById('pdf-principal-sig');
+      if (_principalSigData) {
+        principalCell.innerHTML = 'חתימת המנהל: <img src="' + _principalSigData + '" style="height:24px;vertical-align:middle;margin-right:4px;">';
+      } else {
+        principalCell.textContent = 'חתימת המנהל: ___________________________';
+      }
 
       // צילום עם html2canvas
       const canvas = await html2canvas(document.getElementById('pdfPage'), {
