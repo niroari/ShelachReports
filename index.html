@@ -2202,7 +2202,8 @@
       }
       dateCell.textContent = 'תאריך: ' + dateDisplay;
 
-      // חתימת מנהל/ת בשורת סה"כ שעות
+      // חתימת מנהל/ת — טען מחדש ישירות מ-Firestore לפני הפקת ה-PDF
+      await loadPrincipalSignature(month, year);
       const principalCell = document.getElementById('pdf-principal-sig');
       if (_principalSigData) {
         principalCell.innerHTML = 'חתימת המנהל: <img src="' + _principalSigData + '" style="height:24px;vertical-align:middle;margin-right:4px;">';
