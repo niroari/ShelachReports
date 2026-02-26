@@ -2851,7 +2851,11 @@
       const sigCell  = document.getElementById('pdf-sig-cell');
       const dateCell = document.getElementById('pdf-date-cell');
       if (sigDataUrl) {
-        sigCell.innerHTML = 'חתימת המורה: <img src="' + sigDataUrl + '" style="height:70px;vertical-align:middle;margin-right:4px;">';
+        sigCell.textContent = 'חתימת המורה: ';
+        const _sigImg = document.createElement('img');
+        _sigImg.src = sigDataUrl;
+        _sigImg.style.cssText = 'height:70px;vertical-align:middle;margin-right:4px;';
+        sigCell.appendChild(_sigImg);
       } else {
         sigCell.textContent = 'חתימת המורה: ____________________';
       }
@@ -2861,7 +2865,11 @@
       await loadPrincipalSignature(month, year);
       const principalCell = document.getElementById('pdf-principal-sig');
       if (_principalSigData) {
-        principalCell.innerHTML = 'חתימת המנהל: <img src="' + _principalSigData + '" style="height:56px;vertical-align:middle;margin-right:4px;">';
+        principalCell.textContent = 'חתימת המנהל: ';
+        const _prinImg = document.createElement('img');
+        _prinImg.src = _principalSigData;
+        _prinImg.style.cssText = 'height:56px;vertical-align:middle;margin-right:4px;';
+        principalCell.appendChild(_prinImg);
       } else {
         principalCell.textContent = 'חתימת המנהל: ___________________________';
       }
@@ -3151,7 +3159,11 @@
       const sigCell  = document.getElementById('eshel-pdf-sig-cell');
       const dateCell = document.getElementById('eshel-pdf-date-cell');
       if (sigDataUrl) {
-        sigCell.innerHTML = 'חתימת העובד: <img src="' + sigDataUrl + '" style="height:70px;vertical-align:middle;margin-right:4px;">';
+        sigCell.textContent = 'חתימת העובד: ';
+        const _eshelSigImg = document.createElement('img');
+        _eshelSigImg.src = sigDataUrl;
+        _eshelSigImg.style.cssText = 'height:70px;vertical-align:middle;margin-right:4px;';
+        sigCell.appendChild(_eshelSigImg);
       } else {
         sigCell.textContent = 'חתימת העובד: ________________________________';
       }
@@ -3479,36 +3491,43 @@
     const data = snap.data();
     const monthName = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'][data.month];
 
-    document.getElementById('principalInfo').innerHTML = `
-      <div class="principal-info-row">מורה: <strong>${data.teacherName || ''}</strong></div>
-      <div class="principal-info-row">בית ספר: <strong>${data.schoolName || ''}</strong></div>
-      <div class="principal-info-row">חודש: <strong>${monthName} ${data.year}</strong></div>
-    `;
+    // Safely render teacher info using textContent (prevents XSS)
+    const infoDiv = document.getElementById('principalInfo');
+    infoDiv.innerHTML = '';
+    [['מורה', data.teacherName], ['בית ספר', data.schoolName], ['חודש', monthName + ' ' + data.year]].forEach(([label, val]) => {
+      const row = document.createElement('div');
+      row.className = 'principal-info-row';
+      const strong = document.createElement('strong');
+      strong.textContent = val || '';
+      row.append(label + ': ', strong);
+      infoDiv.appendChild(row);
+    });
 
-    // Render report snapshot table
+    // Safely render report snapshot table using DOM (prevents XSS)
     const snapshot = data.reportSnapshot || {};
     const days = Object.keys(snapshot).map(Number).sort((a, b) => a - b);
     if (days.length > 0) {
-      let rows = '';
+      const table = document.createElement('table');
+      const thead = table.createTHead();
+      const hRow = thead.insertRow();
+      ['יום','יום בשבוע','שעות היעדרות','ש"נ/מ"מ','כיתה','תיאור פעולה','סיבה'].forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        hRow.appendChild(th);
+      });
+      const tbody = table.createTBody();
       days.forEach(day => {
         const r = snapshot[day];
-        rows += `<tr>
-          <td>${day}</td>
-          <td>${r.weekday || ''}</td>
-          <td>${r.hours || ''}</td>
-          <td>${r.substitute || ''}</td>
-          <td>${r.kita || ''}</td>
-          <td style="text-align:right;">${r.description || ''}</td>
-          <td style="text-align:right;">${r.reason || ''}</td>
-        </tr>`;
+        const tr = tbody.insertRow();
+        [day, r.weekday, r.hours, r.substitute, r.kita, r.description, r.reason].forEach((val, i) => {
+          const td = tr.insertCell();
+          td.textContent = val || '';
+          if (i >= 5) td.style.textAlign = 'right';
+        });
       });
-      document.getElementById('principalReport').innerHTML = `
-        <table>
-          <thead><tr>
-            <th>יום</th><th>יום בשבוע</th><th>שעות היעדרות</th><th>ש"נ/מ"מ</th><th>כיתה</th><th>תיאור פעולה</th><th>סיבה</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>`;
+      const reportEl = document.getElementById('principalReport');
+      reportEl.innerHTML = '';
+      reportEl.appendChild(table);
       document.getElementById('principalReportCard').style.display = 'block';
     }
 
