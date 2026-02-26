@@ -1648,7 +1648,11 @@
       // Load user data from Firestore after sign-in
       loadSettings();
     } else {
-      document.getElementById('loginOverlay').style.display = 'flex';
+      // Don't show login screen if this is a principal signing link
+      const isPrincipalMode = new URLSearchParams(window.location.search).has('sign');
+      if (!isPrincipalMode) {
+        document.getElementById('loginOverlay').style.display = 'flex';
+      }
       document.getElementById('userInfo').style.display = 'none';
     }
   });
