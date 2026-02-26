@@ -303,6 +303,9 @@
     /* שורת שבת — מוסתרת */
     .row-shabbat { display: none; }
 
+    /* קו עבה מתחת לשישי — הפרדת שבועות */
+    .row-week-end td { border-bottom: 2px solid #888 !important; }
+
     /* שורת חג */
     .row-vacation {
       background: #f0f0f0 !important;
@@ -994,6 +997,7 @@
     { start: new Date(2026,  3, 22), end: new Date(2026,  3, 22), label: 'יום העצמאות' },
     { start: new Date(2026,  4,  5), end: new Date(2026,  4,  5), label: 'ל"ג בעומר' },
     { start: new Date(2026,  4, 21), end: new Date(2026,  4, 22), label: 'שבועות' },
+    { start: new Date(2026,  5, 20), end: new Date(2026,  7, 31), label: 'חופשת קיץ' },
   ];
 
   function getVacationLabel(date) {
@@ -1022,6 +1026,7 @@
 
       row.style.display = '';
       row.querySelector('.weekday').textContent = dayNames[weekday];
+      weekday === 5 ? row.classList.add('row-week-end') : row.classList.remove('row-week-end');
 
       const vacation = getVacationLabel(date);
       const inputs   = row.querySelectorAll('input');
