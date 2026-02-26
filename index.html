@@ -917,6 +917,181 @@
     .eshel-info-grid { grid-template-columns: 1fr 1fr; }
   }
 
+  /* ===== Mode Toggle ===== */
+  .mode-toggle {
+    display: flex;
+    gap: 0;
+    margin: 16px 0 20px;
+    background: #f0f2f5;
+    border-radius: 10px;
+    padding: 4px;
+    width: fit-content;
+  }
+  .mode-btn {
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    color: #666;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .mode-btn.active {
+    background: #fff;
+    color: #111;
+    font-weight: 700;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+  }
+  .mode-btn:hover:not(.active) { color: #333; }
+
+  /* ===== Calendar View ===== */
+  .cal-multiselect-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;
+  }
+  .btn-multiselect {
+    background: #f0f2f5; color: #333; border: 2px solid #ddd;
+    border-radius: 8px; padding: 8px 16px; font-size: 13px;
+    font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s;
+  }
+  .btn-multiselect.active { background: #2980b9; color: #fff; border-color: #2980b9; }
+  .btn-multiselect-apply {
+    background: #2ecc71; color: #fff; border: none;
+    border-radius: 8px; padding: 8px 16px; font-size: 13px;
+    font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  #multiselect-count { font-size: 13px; color: #666; }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    direction: rtl;
+  }
+  .cal-header {
+    text-align: center; font-weight: 700; font-size: 12px; color: #888; padding: 4px 0 8px;
+  }
+  .cal-day {
+    background: #f8f9fa; border-radius: 10px;
+    padding: 10px 8px 8px; cursor: pointer;
+    min-height: 62px; position: relative;
+    border: 2px solid transparent; transition: background 0.12s, border-color 0.12s;
+  }
+  .cal-day:hover { background: #eafaf1; border-color: #2ecc71; }
+  .cal-day.has-data { background: #eafaf1; border-color: #27ae60; }
+  .cal-day.vacation { background: #f0f0f0; cursor: default; pointer-events: none; }
+  .cal-day.selected { background: #dbeafe; border-color: #2980b9; }
+  .cal-day-num { font-size: 17px; font-weight: 700; line-height: 1; color: #222; }
+  .cal-day.vacation .cal-day-num { color: #aaa; }
+  .cal-vacation-label { font-size: 9px; color: #aaa; margin-top: 3px; line-height: 1.3; }
+  .cal-day-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: #27ae60;
+    position: absolute; bottom: 8px; left: 8px;
+  }
+
+  /* ===== Day Panel (slide-up) ===== */
+  #day-panel {
+    display: none; position: fixed; inset: 0; z-index: 600;
+    background: rgba(0,0,0,0.45); align-items: flex-end; justify-content: center;
+  }
+  #day-panel.open { display: flex; }
+  .day-panel-box {
+    background: #fff; border-radius: 20px 20px 0 0;
+    padding: 24px 24px 32px; width: 100%; max-width: 600px;
+    direction: rtl; max-height: 88vh; overflow-y: auto;
+    box-shadow: 0 -4px 30px rgba(0,0,0,0.15);
+  }
+  .day-panel-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+  }
+  .day-panel-header h3 { margin: 0; font-size: 18px; }
+  .day-panel-close {
+    background: #f0f2f5; border: none; border-radius: 50%;
+    width: 34px; height: 34px; font-size: 16px; cursor: pointer; flex-shrink: 0;
+  }
+  .day-panel-fields { display: grid; gap: 14px; margin-bottom: 20px; }
+  .day-panel-fields label { font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 4px; }
+  .day-panel-fields input {
+    width: 100%; padding: 12px; border: 1.5px solid #ddd;
+    border-radius: 8px; font-size: 16px; font-family: inherit; box-sizing: border-box;
+  }
+  .day-panel-fields input:focus { outline: none; border-color: #2ecc71; }
+  .day-panel-actions { display: flex; gap: 10px; }
+  .btn-panel-save {
+    flex: 1; background: #2ecc71; color: #fff; border: none;
+    border-radius: 10px; padding: 14px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+  .btn-panel-save:hover { background: #27ae60; }
+  .btn-panel-clear {
+    background: #fff0f0; color: #e74c3c; border: 1.5px solid #f5c6c6;
+    border-radius: 10px; padding: 14px 18px; font-size: 14px; cursor: pointer; font-family: inherit; font-weight: 600;
+  }
+  .btn-panel-close {
+    background: #f0f2f5; color: #555; border: none;
+    border-radius: 10px; padding: 14px 18px; font-size: 14px; cursor: pointer; font-family: inherit;
+  }
+
+  /* ===== Eshel Wizard ===== */
+  .wizard-wrap { padding: 2px 0; }
+  .wizard-dots {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    justify-content: center; margin-bottom: 6px;
+  }
+  .wizard-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: #ddd; cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+  }
+  .wizard-dot.filled  { background: #27ae60; }
+  .wizard-dot.current { background: #2980b9; transform: scale(1.3); }
+  .wizard-counter {
+    text-align: center; font-size: 13px; color: #888;
+    font-weight: 600; margin-bottom: 10px;
+  }
+  .wizard-card {
+    background: #fff; border-radius: 14px; padding: 14px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    margin-bottom: 14px; display: grid; gap: 10px;
+  }
+  .wz-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .wz-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .wz-field label, .wz-2col label, .wz-3col label {
+    font-size: 12px; font-weight: 600; color: #666; display: block; margin-bottom: 3px;
+  }
+  .wz-field input, .wz-2col input[type="text"], .wz-2col input[type="date"],
+  .wz-3col input[type="text"], .wz-field select, .wz-2col select, .wz-3col select {
+    width: 100%; padding: 9px 10px; border: 1.5px solid #ddd;
+    border-radius: 8px; font-size: 14px; font-weight: 400; font-family: inherit;
+    box-sizing: border-box; background: #fff; color: #222;
+  }
+  .wz-field input:focus, .wz-2col input:focus, .wz-3col input:focus,
+  .wz-field select:focus, .wz-2col select:focus, .wz-3col select:focus { outline: none; border-color: #2ecc71; }
+  .wz-2col input[readonly] { background: #f8f9fa; color: #777; }
+  .wz-checkboxes {
+    display: flex; flex-wrap: wrap; gap: 8px 14px;
+    padding: 10px 12px; background: #f8f9fa; border-radius: 10px;
+  }
+  .wz-checkboxes label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+  }
+  .wz-checkboxes input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #27ae60; }
+  .wizard-nav { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .btn-wz-nav {
+    background: #f0f2f5; color: #333; border: none;
+    border-radius: 10px; padding: 11px 22px; font-size: 14px;
+    font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s;
+  }
+  .btn-wz-nav:hover:not(:disabled) { background: #e0e4ea; }
+  .btn-wz-nav:disabled { opacity: 0.3; cursor: default; }
+  .btn-wz-save {
+    background: #2ecc71; color: #fff; border: none;
+    border-radius: 10px; padding: 11px 28px; font-size: 14px;
+    font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+  .btn-wz-save:hover { background: #27ae60; }
+
   /* ===== Login Screen ===== */
   #loginOverlay {
     position: fixed; inset: 0;
@@ -1167,6 +1342,14 @@
       <button class="btn-clear" onclick="clearReport()">נקה נתונים</button>
     </div>
 
+    <!-- בחירת מצב הזנה -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" onclick="switchMode('table')">☰ טבלה</button>
+      <button class="mode-btn" onclick="switchMode('calendar')">📅 לוח שנה</button>
+    </div>
+
+    <!-- מצב טבלה (קיים) -->
+    <div id="view-table">
     <div class="report-table-wrap">
       <table class="report-table">
         <thead>
@@ -1221,6 +1404,12 @@
           </tr>
         </tfoot>
       </table>
+    </div>
+    </div><!-- /view-table -->
+
+    <!-- מצב לוח שנה (יתמלא בשלב הבא) -->
+    <div id="view-calendar" style="display:none;">
+      <p style="color:#aaa;padding:40px;text-align:center;">לוח שנה — בקרוב</p>
     </div>
 
   </div>
@@ -1303,6 +1492,12 @@
     </div>
   </div>
 
+  <!-- בחירת מצב הזנה — אש"ל -->
+  <div class="mode-toggle">
+    <button class="mode-btn active" onclick="switchEshelMode('table')">☰ טבלה</button>
+    <button class="mode-btn" onclick="switchEshelMode('wizard')">◀▶ יומי</button>
+  </div>
+
   <!-- פרטים קבועים (מהגדרות) -->
   <div class="card" style="margin-bottom:20px;max-width:none;">
     <h2>פרטים קבועים</h2>
@@ -1330,6 +1525,9 @@
     </div>
   </div>
 
+  <!-- מצב טבלה — אש"ל -->
+  <div id="eshel-view-table">
+
   <!-- טבלת פעילות -->
   <div class="report-card" style="margin-bottom:20px;">
     <div class="eshel-table-wrap">
@@ -1353,26 +1551,26 @@
           </tr>
         </thead>
         <tbody id="eshelBody">
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
-          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><select class="eshel-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
         </tbody>
       </table>
     </div>
@@ -1397,6 +1595,45 @@
   <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;">
     <button class="btn-print" onclick="printEshel()">ייצא PDF ⬇</button>
     <button class="btn-excel" onclick="exportEshelToExcel()">ייצא אקסל ⬇</button>
+  </div>
+
+  </div><!-- /eshel-view-table -->
+
+  <!-- מצב יומי — אש"ל -->
+  <div id="eshel-view-wizard" style="display:none;">
+    <div class="wizard-wrap">
+      <div class="wizard-dots" id="wizard-dots"></div>
+      <div class="wizard-counter">רשומה <span id="wizard-row-num">1 / 20</span></div>
+      <div class="wizard-card">
+        <div class="wz-2col">
+          <div><label>תאריך</label><input id="wz-date" type="date" oninput="fillWizardDay()"></div>
+          <div><label>יום בשבוע</label><input id="wz-dayname" type="text" readonly placeholder="מחושב אוטומטית"></div>
+        </div>
+        <div class="wz-2col">
+          <div><label>משעה</label><select id="wz-from-time"></select></div>
+          <div><label>עד שעה</label><select id="wz-to-time"></select></div>
+        </div>
+        <div class="wz-3col">
+          <div><label>ממקום</label><input id="wz-from-place" type="text"></div>
+          <div><label>למקום</label><input id="wz-to-place" type="text"></div>
+          <div><label>מטרת הפעולה</label><input id="wz-purpose" type="text"></div>
+        </div>
+        <div class="wz-checkboxes">
+          <label><input id="wz-bein-iri" type="checkbox"> בין עירוני</label>
+          <label><input id="wz-iri" type="checkbox"> עירוני</label>
+          <label><input id="wz-boker" type="checkbox"> בוקר</label>
+          <label><input id="wz-tsaharaim" type="checkbox"> צהריים</label>
+          <label><input id="wz-erev" type="checkbox"> ערב</label>
+          <label>לינה <select id="wz-lina"><option value="">—</option><option value="מבנה">מבנה</option><option value="שטח">שטח</option></select></label>
+        </div>
+        <div class="wz-field"><label>סה"כ</label><input id="wz-total" type="text" style="max-width:120px;"></div>
+      </div>
+      <div class="wizard-nav">
+        <button id="wz-prev" class="btn-wz-nav" onclick="wizardNav(-1)">הקודם ▶</button>
+        <button class="btn-wz-save" onclick="saveWizardRow(); renderWizard(_wizardRow);">שמור</button>
+        <button id="wz-next" class="btn-wz-nav" onclick="wizardNav(1)">◀ הבא</button>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -1694,6 +1931,12 @@
     messagingSenderId: "890845711067",
     appId: "1:890845711067:web:746dde4901125d1acf9afe"
   };
+  // Local preview bypass — hide login immediately before Firebase loads
+  const _isLocal = window.location.protocol === 'file:' || window.location.hostname === 'localhost';
+  if (_isLocal) {
+    document.getElementById('loginOverlay').style.display = 'none';
+  }
+
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const provider = new firebase.auth.GoogleAuthProvider();
@@ -1716,9 +1959,10 @@
     } else {
       // Don't show login screen if this is a principal signing link
       const isPrincipalMode = new URLSearchParams(window.location.search).has('sign');
-      if (!isPrincipalMode) {
+      if (!isPrincipalMode && !_isLocal) {
         document.getElementById('loginOverlay').style.display = 'flex';
       }
+      if (_isLocal) { loadSettings(); } // load from localStorage when local
       document.getElementById('userInfo').style.display = 'none';
     }
   });
@@ -2011,6 +2255,9 @@
 
     // Load principal signature status for this month
     loadPrincipalSignature(month, year);
+
+    // Refresh calendar if in calendar mode
+    if (_currentMode === 'calendar') renderCalendar();
   }
 
   // עדכון סה"כ שעות — מסכם את עמודת ש"נ/מ"מ
@@ -2144,6 +2391,341 @@
     const dest = destInputs[Math.min(colIdx, destInputs.length - 1)];
     if (dest) { dest.focus(); dest.select(); }
   });
+
+  // --- מצב הזנה (טבלה / לוח שנה / יומי) ---
+
+  let _currentMode = 'table';
+
+  function switchMode(mode) {
+    _currentMode = mode;
+    document.getElementById('view-table').style.display    = mode === 'table'    ? '' : 'none';
+    document.getElementById('view-calendar').style.display = mode === 'calendar' ? '' : 'none';
+    const btns = document.querySelectorAll('#page-report .mode-btn');
+    btns.forEach(btn => btn.classList.remove('active'));
+    const idx = ['table','calendar'].indexOf(mode);
+    if (btns[idx]) btns[idx].classList.add('active');
+    if (mode === 'calendar') renderCalendar();
+  }
+
+  let _currentEshelMode = 'table';
+
+  function switchEshelMode(mode) {
+    _currentEshelMode = mode;
+    document.getElementById('eshel-view-table').style.display  = mode === 'table'  ? '' : 'none';
+    document.getElementById('eshel-view-wizard').style.display = mode === 'wizard' ? '' : 'none';
+    const btns = document.querySelectorAll('#page-eshel .mode-btn');
+    btns.forEach(btn => btn.classList.remove('active'));
+    const idx = ['table','wizard'].indexOf(mode);
+    if (btns[idx]) btns[idx].classList.add('active');
+    if (mode === 'wizard') renderWizard(0);
+  }
+
+  // פונקציות עזר משותפות — כותבות ישירות לתוך שורות הטבלה הקיימת
+  function setDayData(day, { hours, substitute, kita, description, reason }) {
+    const row = document.querySelector(`#reportBody tr[data-day="${day}"]`);
+    if (!row || row.style.display === 'none') return;
+    const inputs = row.querySelectorAll('input');
+    inputs[0].value = hours       ?? inputs[0].value;
+    inputs[1].value = substitute  ?? inputs[1].value;
+    inputs[2].value = kita        ?? inputs[2].value;
+    inputs[3].value = description ?? inputs[3].value;
+    inputs[4].value = reason      ?? inputs[4].value;
+    updateTotal();
+    saveReport();
+  }
+
+  function getDayData(day) {
+    const row = document.querySelector(`#reportBody tr[data-day="${day}"]`);
+    if (!row) return { hours:'', substitute:'', kita:'', description:'', reason:'' };
+    const inputs = row.querySelectorAll('input');
+    return {
+      hours:       inputs[0].value,
+      substitute:  inputs[1].value,
+      kita:        inputs[2].value,
+      description: inputs[3].value,
+      reason:      inputs[4].value,
+    };
+  }
+
+  // --- Calendar view ---
+
+  let _calMultiSelect = false;
+  let _calSelected    = new Set();
+  let _panelDay       = null;
+  let _panelIsBulk    = false;
+
+  function renderCalendar() {
+    const month       = parseInt(document.getElementById('selectMonth').value);
+    const year        = parseInt(document.getElementById('selectYear').value);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const container   = document.getElementById('view-calendar');
+    container.innerHTML = '';
+
+    // Multi-select bar
+    const bar = document.createElement('div');
+    bar.className = 'cal-multiselect-bar';
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'btn-multiselect' + (_calMultiSelect ? ' active' : '');
+    toggleBtn.textContent = _calMultiSelect ? '✓ בחירה מרובה — פעיל' : 'בחירה מרובה';
+    toggleBtn.onclick = toggleCalMultiSelect;
+    bar.appendChild(toggleBtn);
+    if (_calMultiSelect && _calSelected.size > 0) {
+      const countSpan = document.createElement('span');
+      countSpan.id = 'multiselect-count';
+      countSpan.textContent = _calSelected.size + ' ימים נבחרו';
+      bar.appendChild(countSpan);
+      const applyBtn = document.createElement('button');
+      applyBtn.className = 'btn-multiselect-apply';
+      applyBtn.textContent = 'מלא לכל הנבחרים ▸';
+      applyBtn.onclick = openBulkPanel;
+      bar.appendChild(applyBtn);
+    }
+    container.appendChild(bar);
+
+    // Grid
+    const grid = document.createElement('div');
+    grid.className = 'cal-grid';
+
+    // Headers (RTL: ראשון on right = column 1)
+    ['ראשון','שני','שלישי','רביעי','חמישי','שישי'].forEach(name => {
+      const h = document.createElement('div');
+      h.className = 'cal-header';
+      h.textContent = name;
+      grid.appendChild(h);
+    });
+
+    // Day cells
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date    = new Date(year, month, day);
+      const weekday = date.getDay();
+      if (weekday === 6) continue; // skip Shabbat
+
+      const vacation  = getVacationLabel(date);
+      const data      = getDayData(day);
+      const hasData   = !!(data.hours || data.substitute || data.kita || data.description || data.reason);
+      const isSelected = _calSelected.has(day);
+
+      const cell = document.createElement('div');
+      cell.className = 'cal-day' +
+        (vacation   ? ' vacation'  : '') +
+        (hasData && !vacation ? ' has-data' : '') +
+        (isSelected ? ' selected'  : '');
+      cell.style.gridColumn = weekday + 1;
+
+      cell.innerHTML =
+        `<div class="cal-day-num">${day}</div>` +
+        (vacation ? `<div class="cal-vacation-label">${vacation}</div>` : '') +
+        (hasData && !vacation ? '<div class="cal-day-dot"></div>' : '');
+
+      if (!vacation) {
+        cell.onclick = () => _calMultiSelect ? toggleCalDay(day) : openDayPanel(day);
+      }
+      grid.appendChild(cell);
+    }
+    container.appendChild(grid);
+  }
+
+  function toggleCalMultiSelect() {
+    _calMultiSelect = !_calMultiSelect;
+    _calSelected.clear();
+    renderCalendar();
+  }
+
+  function toggleCalDay(day) {
+    _calSelected.has(day) ? _calSelected.delete(day) : _calSelected.add(day);
+    renderCalendar();
+  }
+
+  // --- Day panel ---
+
+  function openDayPanel(day) {
+    _panelDay    = day;
+    _panelIsBulk = false;
+    const month = parseInt(document.getElementById('selectMonth').value);
+    const year  = parseInt(document.getElementById('selectYear').value);
+    const date  = new Date(year, month, day);
+    const wName = ['ראשון','שני','שלישי','רביעי','חמישי','שישי'][date.getDay()];
+    document.getElementById('day-panel-title').textContent = wName + ', ' + day + ' ב' + MONTH_NAMES[month];
+    const d = getDayData(day);
+    document.getElementById('dp-hours').value       = d.hours       || '';
+    document.getElementById('dp-substitute').value  = d.substitute  || '';
+    document.getElementById('dp-kita').value        = d.kita        || '';
+    document.getElementById('dp-description').value = d.description || '';
+    document.getElementById('dp-reason').value      = d.reason      || '';
+    document.getElementById('day-panel').classList.add('open');
+    setTimeout(() => document.getElementById('dp-hours').focus(), 80);
+  }
+
+  function openBulkPanel() {
+    if (_calSelected.size === 0) return;
+    _panelDay    = null;
+    _panelIsBulk = true;
+    document.getElementById('day-panel-title').textContent = 'מלא עבור ' + _calSelected.size + ' ימים נבחרים';
+    ['dp-hours','dp-substitute','dp-kita','dp-description','dp-reason']
+      .forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('day-panel').classList.add('open');
+  }
+
+  function closeDayPanel() {
+    document.getElementById('day-panel').classList.remove('open');
+    _panelDay    = null;
+    _panelIsBulk = false;
+  }
+
+  function saveDayPanel() {
+    const data = {
+      hours:       document.getElementById('dp-hours').value,
+      substitute:  document.getElementById('dp-substitute').value,
+      kita:        document.getElementById('dp-kita').value,
+      description: document.getElementById('dp-description').value,
+      reason:      document.getElementById('dp-reason').value,
+    };
+    const days = _panelIsBulk ? Array.from(_calSelected) : [_panelDay];
+    days.forEach(d => setDayData(d, data));
+    closeDayPanel();
+    if (_panelIsBulk) { _calSelected.clear(); }
+    renderCalendar();
+  }
+
+  function clearDayPanel() {
+    if (!_panelDay) return;
+    setDayData(_panelDay, { hours:'', substitute:'', kita:'', description:'', reason:'' });
+    closeDayPanel();
+    renderCalendar();
+  }
+
+  // --- אש"ל Wizard ---
+
+  let _wizardRow = 0;
+
+  function getEshelRowData(idx) {
+    const rows = document.querySelectorAll('#eshelBody tr');
+    if (idx < 0 || idx >= rows.length) return null;
+    const r = rows[idx];
+    return {
+      date:      r.querySelector('.eshel-date').value,
+      dayname:   r.querySelector('.eshel-dayname').value,
+      fromTime:  r.querySelector('.eshel-from-time').value,
+      toTime:    r.querySelector('.eshel-to-time').value,
+      fromPlace: r.querySelector('.eshel-from-place').value,
+      toPlace:   r.querySelector('.eshel-to-place').value,
+      purpose:   r.querySelector('.eshel-purpose').value,
+      beinIri:   r.querySelector('.eshel-bein-iri').checked,
+      iri:       r.querySelector('.eshel-iri').checked,
+      boker:     r.querySelector('.eshel-boker').checked,
+      tsaharaim: r.querySelector('.eshel-tsaharaim').checked,
+      erev:      r.querySelector('.eshel-erev').checked,
+      lina:      r.querySelector('.eshel-lina').value,
+      total:     r.querySelector('.eshel-total').value,
+    };
+  }
+
+  function setEshelRowData(idx, data) {
+    const rows = document.querySelectorAll('#eshelBody tr');
+    if (idx < 0 || idx >= rows.length) return;
+    const r = rows[idx];
+    r.querySelector('.eshel-date').value        = data.date      ?? r.querySelector('.eshel-date').value;
+    r.querySelector('.eshel-from-time').value   = data.fromTime  ?? r.querySelector('.eshel-from-time').value;
+    r.querySelector('.eshel-to-time').value     = data.toTime    ?? r.querySelector('.eshel-to-time').value;
+    r.querySelector('.eshel-from-place').value  = data.fromPlace ?? r.querySelector('.eshel-from-place').value;
+    r.querySelector('.eshel-to-place').value    = data.toPlace   ?? r.querySelector('.eshel-to-place').value;
+    r.querySelector('.eshel-purpose').value     = data.purpose   ?? r.querySelector('.eshel-purpose').value;
+    r.querySelector('.eshel-bein-iri').checked  = data.beinIri   ?? r.querySelector('.eshel-bein-iri').checked;
+    r.querySelector('.eshel-iri').checked       = data.iri       ?? r.querySelector('.eshel-iri').checked;
+    r.querySelector('.eshel-boker').checked     = data.boker     ?? r.querySelector('.eshel-boker').checked;
+    r.querySelector('.eshel-tsaharaim').checked = data.tsaharaim ?? r.querySelector('.eshel-tsaharaim').checked;
+    r.querySelector('.eshel-erev').checked      = data.erev      ?? r.querySelector('.eshel-erev').checked;
+    r.querySelector('.eshel-lina').value        = data.lina      ?? '';
+    r.querySelector('.eshel-total').value       = data.total     ?? r.querySelector('.eshel-total').value;
+    // Trigger day-name auto-fill if date changed
+    if (data.date !== undefined) fillEshelDay(r.querySelector('.eshel-date'));
+    saveEshel();
+  }
+
+  function renderWizard(idx) {
+    const totalRows = document.querySelectorAll('#eshelBody tr').length;
+    _wizardRow = Math.max(0, Math.min(idx, totalRows - 1));
+    const data = getEshelRowData(_wizardRow);
+
+    // Progress dots
+    const dotsEl = document.getElementById('wizard-dots');
+    dotsEl.innerHTML = '';
+    for (let i = 0; i < totalRows; i++) {
+      const d = getEshelRowData(i);
+      const filled = !!(d && (d.date || d.purpose || d.total));
+      const dot = document.createElement('div');
+      dot.className = 'wizard-dot' + (filled ? ' filled' : '') + (i === _wizardRow ? ' current' : '');
+      dot.title = 'רשומה ' + (i + 1);
+      dot.onclick = (function(ri) { return function() { saveWizardRow(); renderWizard(ri); }; })(i);
+      dotsEl.appendChild(dot);
+    }
+
+    document.getElementById('wizard-row-num').textContent = (_wizardRow + 1) + ' / ' + totalRows;
+
+    // Fill fields
+    document.getElementById('wz-date').value       = data.date      || '';
+    document.getElementById('wz-dayname').value    = data.dayname   || '';
+    document.getElementById('wz-from-time').value  = data.fromTime  || '';
+    document.getElementById('wz-to-time').value    = data.toTime    || '';
+    document.getElementById('wz-from-place').value = data.fromPlace || '';
+    document.getElementById('wz-to-place').value   = data.toPlace   || '';
+    document.getElementById('wz-purpose').value    = data.purpose   || '';
+    document.getElementById('wz-bein-iri').checked  = data.beinIri   || false;
+    document.getElementById('wz-iri').checked       = data.iri       || false;
+    document.getElementById('wz-boker').checked     = data.boker     || false;
+    document.getElementById('wz-tsaharaim').checked = data.tsaharaim || false;
+    document.getElementById('wz-erev').checked      = data.erev      || false;
+    document.getElementById('wz-lina').value        = data.lina      || '';
+    document.getElementById('wz-total').value       = data.total     || '';
+
+    document.getElementById('wz-prev').disabled = _wizardRow === 0;
+    document.getElementById('wz-next').disabled = _wizardRow === totalRows - 1;
+  }
+
+  function saveWizardRow() {
+    setEshelRowData(_wizardRow, {
+      date:      document.getElementById('wz-date').value,
+      fromTime:  document.getElementById('wz-from-time').value,
+      toTime:    document.getElementById('wz-to-time').value,
+      fromPlace: document.getElementById('wz-from-place').value,
+      toPlace:   document.getElementById('wz-to-place').value,
+      purpose:   document.getElementById('wz-purpose').value,
+      beinIri:   document.getElementById('wz-bein-iri').checked,
+      iri:       document.getElementById('wz-iri').checked,
+      boker:     document.getElementById('wz-boker').checked,
+      tsaharaim: document.getElementById('wz-tsaharaim').checked,
+      erev:      document.getElementById('wz-erev').checked,
+      lina:      document.getElementById('wz-lina').value,
+      total:     document.getElementById('wz-total').value,
+    });
+  }
+
+  function wizardNav(dir) {
+    saveWizardRow();
+    renderWizard(_wizardRow + dir);
+  }
+
+  function fillWizardDay() {
+    const val = document.getElementById('wz-date').value;
+    if (!val) { document.getElementById('wz-dayname').value = ''; return; }
+    const names = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+    document.getElementById('wz-dayname').value = names[new Date(val).getDay()];
+  }
+
+  // Populate time dropdowns (06:00–22:00, 30-min steps)
+  (function initTimeSelects() {
+    const opts = ['<option value="">— שעה —</option>'];
+    for (let h = 6; h <= 22; h++) {
+      ['00','30'].forEach(m => {
+        if (h === 22 && m === '30') return;
+        const t = String(h).padStart(2,'0') + ':' + m;
+        opts.push(`<option value="${t}">${t}</option>`);
+      });
+    }
+    const html = opts.join('');
+    document.getElementById('wz-from-time').innerHTML = html;
+    document.getElementById('wz-to-time').innerHTML   = html;
+  })();
 
   // --- ייצוא PDF ---
 
@@ -2337,7 +2919,7 @@
         boker:     row.querySelector('.eshel-boker').checked,
         tsaharaim: row.querySelector('.eshel-tsaharaim').checked,
         erev:      row.querySelector('.eshel-erev').checked,
-        lina:      row.querySelector('.eshel-lina').checked,
+        lina:      row.querySelector('.eshel-lina').value,
         total:     row.querySelector('.eshel-total').value,
       });
     });
@@ -2367,7 +2949,7 @@
       row.querySelector('.eshel-boker').checked     = rd.boker     || false;
       row.querySelector('.eshel-tsaharaim').checked = rd.tsaharaim || false;
       row.querySelector('.eshel-erev').checked      = rd.erev      || false;
-      row.querySelector('.eshel-lina').checked      = rd.lina      || false;
+      row.querySelector('.eshel-lina').value        = rd.lina      || '';
       row.querySelector('.eshel-total').value       = rd.total     || '';
     });
     if (data.date) document.getElementById('eshelDate').value = data.date;
@@ -2393,7 +2975,7 @@
       row.querySelector('.eshel-boker').checked     = false;
       row.querySelector('.eshel-tsaharaim').checked = false;
       row.querySelector('.eshel-erev').checked      = false;
-      row.querySelector('.eshel-lina').checked      = false;
+      row.querySelector('.eshel-lina').value        = '';
       row.querySelector('.eshel-total').value       = '';
     });
     document.getElementById('eshelDate').value = '';
@@ -2409,6 +2991,9 @@
       if (!raw) return;
       applyEshel(JSON.parse(raw));
     }
+
+    // Refresh wizard if active
+    if (_currentEshelMode === 'wizard') renderWizard(0);
   }
 
   function clearEshel() {
@@ -2530,7 +3115,7 @@
           bk  = screenRow.querySelector('.eshel-boker').checked      ? '✓' : '';
           ts  = screenRow.querySelector('.eshel-tsaharaim').checked  ? '✓' : '';
           ev  = screenRow.querySelector('.eshel-erev').checked       ? '✓' : '';
-          ln  = screenRow.querySelector('.eshel-lina').checked       ? '✓' : '';
+          ln  = screenRow.querySelector('.eshel-lina').value || '';
           tot = screenRow.querySelector('.eshel-total').value;
         }
         pdfRow.querySelector('.epd-dt').textContent  = dt  || '\u00A0';
@@ -2646,7 +3231,7 @@
         row.querySelector('.eshel-boker').checked      ? 'כן' : '',
         row.querySelector('.eshel-tsaharaim').checked  ? 'כן' : '',
         row.querySelector('.eshel-erev').checked       ? 'כן' : '',
-        row.querySelector('.eshel-lina').checked       ? 'כן' : '',
+        row.querySelector('.eshel-lina').value || '',
         row.querySelector('.eshel-total').value,
       ]);
     });
@@ -2977,6 +3562,28 @@
     parseInt(document.getElementById('eshelYear').value)
   );
 </script>
+
+<!-- פאנל יום — מצב לוח שנה -->
+<div id="day-panel">
+  <div class="day-panel-box">
+    <div class="day-panel-header">
+      <h3 id="day-panel-title"></h3>
+      <button class="day-panel-close" onclick="closeDayPanel()">✕</button>
+    </div>
+    <div class="day-panel-fields">
+      <div><label>שעות היעדרות</label><input id="dp-hours" type="number" min="0" placeholder="0"></div>
+      <div><label>ש"נ / מ"מ</label><input id="dp-substitute" type="text" placeholder="ש"נ או מ"מ"></div>
+      <div><label>כיתה</label><input id="dp-kita" type="text" placeholder="שם הכיתה"></div>
+      <div><label>תיאור הפעולה</label><input id="dp-description" type="text" placeholder="תיאור..."></div>
+      <div><label>סיבה להיעדרות / שעות נוספות</label><input id="dp-reason" type="text" placeholder="סיבה..."></div>
+    </div>
+    <div class="day-panel-actions">
+      <button class="btn-panel-save" onclick="saveDayPanel()">שמור</button>
+      <button class="btn-panel-clear" onclick="clearDayPanel()">נקה יום</button>
+      <button class="btn-panel-close" onclick="closeDayPanel()">סגור</button>
+    </div>
+  </div>
+</div>
 
 <!-- מודל שיתוף לינק חתימת מנהל -->
 <div id="signModal">
