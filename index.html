@@ -854,7 +854,7 @@
         <option value="2026">2026</option>
       </select>
       <button class="btn-print" onclick="printReport()">ייצא PDF ⬇</button>
-      <button class="btn-send" onclick="openSendModal()">שלח למחוז ת"א ✉</button>
+      <button class="btn-send" onclick="openSendModal()">שלח למחוז ת"א</button>
       <button class="btn-clear" onclick="clearReport()">נקה נתונים</button>
     </div>
 
@@ -982,6 +982,7 @@
         <option value="2026">2026</option>
       </select>
       <button class="btn-print" onclick="printEshel()">ייצא PDF ⬇</button>
+      <button class="btn-send" onclick="openSendModal('eshel')">שלח למחוז ת"א</button>
       <button class="btn-clear" onclick="clearEshel()">נקה נתונים</button>
     </div>
   </div>
@@ -2173,7 +2174,10 @@
 
   // --- שליחה למחוז ת"א ---
 
-  async function openSendModal() {
+  let _sendMode = 'report'; // 'report' או 'eshel'
+
+  async function openSendModal(mode = 'report') {
+    _sendMode = mode;
     document.getElementById('sendModal').classList.add('open');
     document.getElementById('sendMessage').value = '';
     document.getElementById('sendPreview').innerHTML =
@@ -2260,9 +2264,76 @@
       dateCell.textContent = 'תאריך: ' + dateDisplay;
 
       await new Promise(r => setTimeout(r, 80));
-      const canvas = await html2canvas(document.getElementById('pdfPage'), {
-        scale: 0.45, useCORS: true, logging: false, backgroundColor: '#ffffff',
-      });
+
+      let canvas;
+      if (_sendMode === 'eshel') {
+        // הכנת עמוד PDF של האש"ל לתצוגה מקדימה
+        const em = parseInt(document.getElementById('eshelMonth').value);
+        const ey = parseInt(document.getElementById('eshelYear').value);
+        const es = JSON.parse(localStorage.getItem('shelach_settings') || '{}');
+        document.getElementById('eshel-pdf-id').textContent        = es.idNumber  || '';
+        document.getElementById('eshel-pdf-lastname').textContent  = es.lastName  || '';
+        document.getElementById('eshel-pdf-firstname').textContent = es.firstName || '';
+        document.getElementById('eshel-pdf-homecity').textContent  = es.homeCity  || '';
+        document.getElementById('eshel-pdf-workplace').textContent = es.workplace || '';
+        document.getElementById('eshel-pdf-month').textContent     = MONTH_NAMES[em];
+        document.getElementById('eshel-pdf-year').textContent      = ey;
+        const epRows = document.querySelectorAll('#eshelPdfPage .epd-row');
+        const esRows = document.querySelectorAll('#eshelBody tr');
+        epRows.forEach((pdfRow, i) => {
+          const sr = esRows[i];
+          let dt='',dy='',ft='',tt='',fp='',tp='',pu='',bi='',ir='',bk='',ts='',ev='',ln='',tot='';
+          if (sr) {
+            const dv = sr.querySelector('.eshel-date').value;
+            if (dv) dt = new Date(dv + 'T00:00:00').toLocaleDateString('he-IL');
+            dy  = sr.querySelector('.eshel-dayname').value;
+            ft  = sr.querySelector('.eshel-from-time').value;
+            tt  = sr.querySelector('.eshel-to-time').value;
+            fp  = sr.querySelector('.eshel-from-place').value;
+            tp  = sr.querySelector('.eshel-to-place').value;
+            pu  = sr.querySelector('.eshel-purpose').value;
+            bi  = sr.querySelector('.eshel-bein-iri').checked  ? '✓' : '';
+            ir  = sr.querySelector('.eshel-iri').checked        ? '✓' : '';
+            bk  = sr.querySelector('.eshel-boker').checked      ? '✓' : '';
+            ts  = sr.querySelector('.eshel-tsaharaim').checked  ? '✓' : '';
+            ev  = sr.querySelector('.eshel-erev').checked       ? '✓' : '';
+            ln  = sr.querySelector('.eshel-lina').checked       ? '✓' : '';
+            tot = sr.querySelector('.eshel-total').value;
+          }
+          pdfRow.querySelector('.epd-dt').textContent  = dt  || '\u00A0';
+          pdfRow.querySelector('.epd-dy').textContent  = dy  || '\u00A0';
+          pdfRow.querySelector('.epd-ft').textContent  = ft  || '\u00A0';
+          pdfRow.querySelector('.epd-tt').textContent  = tt  || '\u00A0';
+          pdfRow.querySelector('.epd-fp').textContent  = fp  || '\u00A0';
+          pdfRow.querySelector('.epd-tp').textContent  = tp  || '\u00A0';
+          pdfRow.querySelector('.epd-pu').textContent  = pu  || '\u00A0';
+          pdfRow.querySelector('.epd-bi').textContent  = bi  || '\u00A0';
+          pdfRow.querySelector('.epd-ir').textContent  = ir  || '\u00A0';
+          pdfRow.querySelector('.epd-bk').textContent  = bk  || '\u00A0';
+          pdfRow.querySelector('.epd-ts').textContent  = ts  || '\u00A0';
+          pdfRow.querySelector('.epd-ev').textContent  = ev  || '\u00A0';
+          pdfRow.querySelector('.epd-ln').textContent  = ln  || '\u00A0';
+          pdfRow.querySelector('.epd-tot').textContent = tot || '\u00A0';
+        });
+        const eSig  = eshelSigIsEmpty() ? '' : eshelSigCanvas.toDataURL();
+        const eDate = document.getElementById('eshelDate').value;
+        const eDateDisplay = eDate ? new Date(eDate + 'T00:00:00').toLocaleDateString('he-IL') : '_______________';
+        const eSigCell  = document.getElementById('eshel-pdf-sig-cell');
+        const eDateCell = document.getElementById('eshel-pdf-date-cell');
+        eSigCell.textContent  = eSig ? '' : 'חתימת העובד: ________________________________';
+        if (eSig) eSigCell.innerHTML = 'חתימת העובד: <img src="' + eSig + '" style="height:26px;vertical-align:middle;margin-right:4px;">';
+        eDateCell.textContent = 'תאריך: ' + eDateDisplay;
+
+        canvas = await html2canvas(document.getElementById('eshelPdfPage'), {
+          scale: 0.3, useCORS: true, logging: false, backgroundColor: '#ffffff',
+          width: 1122, height: 794,
+        });
+      } else {
+        canvas = await html2canvas(document.getElementById('pdfPage'), {
+          scale: 0.45, useCORS: true, logging: false, backgroundColor: '#ffffff',
+        });
+      }
+
       const img = document.createElement('img');
       img.src = canvas.toDataURL('image/png');
       img.style.cssText = 'max-width:100%;height:auto;display:block;border-radius:4px;';
@@ -2278,11 +2349,15 @@
 
   function closeSendModal() {
     document.getElementById('sendModal').classList.remove('open');
+    const btn = document.getElementById('sendSubmitBtn');
+    btn.textContent = 'שלח';
+    btn.style.background = '';
+    btn.disabled = false;
   }
 
   async function confirmSend() {
-    const month     = parseInt(document.getElementById('selectMonth').value);
-    const year      = parseInt(document.getElementById('selectYear').value);
+    const month     = parseInt(document.getElementById(_sendMode === 'eshel' ? 'eshelMonth' : 'selectMonth').value);
+    const year      = parseInt(document.getElementById(_sendMode === 'eshel' ? 'eshelYear'  : 'selectYear').value);
     const raw       = localStorage.getItem('shelach_settings');
     const s         = raw ? JSON.parse(raw) : DEFAULTS;
     const name      = [s.firstName, s.lastName].filter(Boolean).join(' ') || 'מורה';
@@ -2295,14 +2370,22 @@
 
     try {
       // הורד PDF למכשיר
-      await printReport();
+      if (_sendMode === 'eshel') {
+        await printEshel();
+      } else {
+        await printReport();
+      }
 
       // שלח מייל דרך EmailJS
+      const docType   = _sendMode === 'eshel' ? 'טופס אש"ל' : 'דוח חודשי';
       const bodyText = (message ? message + '\n\n' : '') +
-        `דוח חודשי ${monthName} ${year} מצורף כקובץ PDF.\nנשלח על ידי: ${name}`;
+        `${docType} ${monthName} ${year} מצורף כקובץ PDF.\nנשלח על ידי: ${name}`;
 
+      const subjectLine = _sendMode === 'eshel'
+        ? `${name} - אש"ל ${monthName}`
+        : `${name} - דוחות ${monthName}`;
       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-        subject:   `${name} - דוחות ${monthName}`,
+        subject:   subjectLine,
         from_name: name,
         message:   bodyText,
       });
@@ -2349,7 +2432,7 @@
     <div style="display:flex;gap:10px;">
       <button id="sendSubmitBtn" onclick="confirmSend()"
         style="background:#2980b9;color:white;border:none;border-radius:8px;padding:11px 26px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">
-        שלח ✉
+        שלח
       </button>
       <button onclick="closeSendModal()"
         style="background:#eee;border:none;border-radius:8px;padding:11px 20px;font-size:14px;cursor:pointer;font-family:inherit;">
