@@ -278,6 +278,77 @@
     .sign-status-badge.pending  { background: #fff3cd; color: #856404; }
     .sign-status-badge.signed   { background: #d4edda; color: #155724; }
 
+    /* עמוד חתימת מנהל */
+    #principalPage {
+      display: none;
+      min-height: 100vh;
+      background: #f0f2f5;
+      padding: 24px 16px;
+      box-sizing: border-box;
+    }
+    #principalPage.active { display: block; }
+    .principal-card {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      max-width: 500px;
+      margin: 0 auto 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      direction: rtl;
+    }
+    .principal-card h1 { font-size: 20px; margin: 0 0 6px; color: #222; }
+    .principal-card .subtitle { color: #666; font-size: 14px; margin: 0 0 20px; }
+    .principal-info-row { font-size: 15px; margin-bottom: 8px; color: #333; }
+    .principal-info-row strong { color: #111; }
+    #principalSigCanvas {
+      width: 100%;
+      height: 160px;
+      border: 2px dashed #bbb;
+      border-radius: 10px;
+      cursor: crosshair;
+      background: #fafafa;
+      display: block;
+      touch-action: none;
+    }
+    .principal-sig-label {
+      font-size: 14px;
+      color: #555;
+      margin: 18px 0 8px;
+      font-weight: 600;
+    }
+    #principalSubmitBtn {
+      width: 100%;
+      background: #7d3c98;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      margin-top: 14px;
+    }
+    #principalSubmitBtn:hover { background: #6c3483; }
+    #principalClearBtn {
+      background: none;
+      border: none;
+      color: #999;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 4px 0;
+      margin-top: 6px;
+    }
+    #principalSuccess {
+      display: none;
+      text-align: center;
+      padding: 30px 20px;
+    }
+    #principalSuccess .success-icon { font-size: 56px; margin-bottom: 12px; }
+    #principalSuccess h2 { color: #155724; font-size: 22px; margin: 0 0 8px; }
+    #principalSuccess p  { color: #555; font-size: 15px; margin: 0; }
+
     /* עמוד PDF — ממוקם מחוץ למסך, ייצואלי בלבד */
     #pdfPage {
       position: fixed;
@@ -811,6 +882,28 @@
   </style>
 </head>
 <body>
+
+<!-- עמוד חתימת מנהל (מוצג רק כש-URL מכיל ?sign=) -->
+<div id="principalPage">
+  <div class="principal-card">
+    <h1>✍ חתימת מנהל/ת</h1>
+    <p class="subtitle">דוח פעילות ונוכחות — מורה של"ח</p>
+    <div id="principalInfo">
+      <div class="principal-info-row">טוען פרטים...</div>
+    </div>
+    <div class="principal-sig-label">חתימה:</div>
+    <canvas id="principalSigCanvas" width="600" height="200"></canvas>
+    <div style="text-align:left;">
+      <button id="principalClearBtn" onclick="clearPrincipalSig()">נקה חתימה</button>
+    </div>
+    <button id="principalSubmitBtn" onclick="submitPrincipalSignature()">חתום ושלח ✓</button>
+  </div>
+  <div class="principal-card" id="principalSuccess">
+    <div class="success-icon">✅</div>
+    <h2>החתימה נשלחה בהצלחה!</h2>
+    <p>הדוח נחתם ויופיע אצל המורה.</p>
+  </div>
+</div>
 
 <!-- מסך כניסה -->
 <div id="loginOverlay">
@@ -2520,6 +2613,146 @@
       }, 2000);
     });
   }
+
+  // --- עמוד חתימת מנהל ---
+
+  let _principalDocId = null;
+  let _principalIsDrawing = false, _principalLastX = 0, _principalLastY = 0;
+
+  function principalSigPos(e) {
+    const canvas = document.getElementById('principalSigCanvas');
+    const rect = canvas.getBoundingClientRect();
+    const src  = e.touches ? e.touches[0] : e;
+    return {
+      x: (src.clientX - rect.left) * (canvas.width  / rect.width),
+      y: (src.clientY - rect.top)  * (canvas.height / rect.height),
+    };
+  }
+
+  function principalSigIsEmpty() {
+    const canvas = document.getElementById('principalSigCanvas');
+    return !canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data.some(v => v !== 0);
+  }
+
+  function clearPrincipalSig() {
+    const canvas = document.getElementById('principalSigCanvas');
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function initPrincipalSigCanvas() {
+    const canvas = document.getElementById('principalSigCanvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.addEventListener('mousedown', e => {
+      _principalIsDrawing = true;
+      const p = principalSigPos(e); _principalLastX = p.x; _principalLastY = p.y;
+    });
+    canvas.addEventListener('mousemove', e => {
+      if (!_principalIsDrawing) return;
+      const p = principalSigPos(e);
+      ctx.beginPath(); ctx.moveTo(_principalLastX, _principalLastY); ctx.lineTo(p.x, p.y);
+      ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.stroke();
+      _principalLastX = p.x; _principalLastY = p.y;
+    });
+    canvas.addEventListener('mouseup',    () => { _principalIsDrawing = false; });
+    canvas.addEventListener('mouseleave', () => { _principalIsDrawing = false; });
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault(); _principalIsDrawing = true;
+      const p = principalSigPos(e); _principalLastX = p.x; _principalLastY = p.y;
+    }, { passive: false });
+    canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if (!_principalIsDrawing) return;
+      const p = principalSigPos(e);
+      ctx.beginPath(); ctx.moveTo(_principalLastX, _principalLastY); ctx.lineTo(p.x, p.y);
+      ctx.strokeStyle = '#000'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.stroke();
+      _principalLastX = p.x; _principalLastY = p.y;
+    }, { passive: false });
+    canvas.addEventListener('touchend', () => { _principalIsDrawing = false; });
+  }
+
+  async function initPrincipalPage(docId) {
+    _principalDocId = docId;
+
+    // Hide normal app UI, show principal page
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('principalPage').classList.add('active');
+    const header = document.querySelector('header');
+    const tabs   = document.querySelector('.tabs');
+    if (header) header.style.display = 'none';
+    if (tabs)   tabs.style.display   = 'none';
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+
+    initPrincipalSigCanvas();
+
+    // Load the request from Firestore
+    const snap = await db.collection('signature_requests').doc(docId).get();
+    if (!snap.exists) {
+      document.getElementById('principalInfo').innerHTML =
+        '<div style="color:#c00;">הלינק אינו תקף או פג תוקף.</div>';
+      document.getElementById('principalSubmitBtn').style.display = 'none';
+      return;
+    }
+
+    const data = snap.data();
+    const monthName = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'][data.month];
+
+    document.getElementById('principalInfo').innerHTML = `
+      <div class="principal-info-row">מורה: <strong>${data.teacherName || ''}</strong></div>
+      <div class="principal-info-row">בית ספר: <strong>${data.schoolName || ''}</strong></div>
+      <div class="principal-info-row">חודש: <strong>${monthName} ${data.year}</strong></div>
+    `;
+
+    // If already signed, show the existing signature
+    if (data.status === 'signed' && data.principalSignature) {
+      const canvas = document.getElementById('principalSigCanvas');
+      const img = new Image();
+      img.onload = () => canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      img.src = data.principalSignature;
+      document.getElementById('principalSubmitBtn').textContent = 'עדכן חתימה ✓';
+    }
+  }
+
+  async function submitPrincipalSignature() {
+    if (principalSigIsEmpty()) {
+      alert('יש לחתום לפני השליחה');
+      return;
+    }
+
+    const canvas = document.getElementById('principalSigCanvas');
+    const sigData = canvas.toDataURL();
+    const btn = document.getElementById('principalSubmitBtn');
+    btn.textContent = '⏳ שולח...';
+    btn.disabled = true;
+
+    try {
+      await db.collection('signature_requests').doc(_principalDocId).update({
+        principalSignature: sigData,
+        status:    'signed',
+        signedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+      });
+
+      // Show success
+      document.querySelector('.principal-card:first-of-type').style.display = 'none';
+      document.getElementById('principalSuccess').style.display = 'block';
+    } catch(e) {
+      alert('שגיאה בשליחה: ' + e.message);
+      btn.textContent = 'חתום ושלח ✓';
+      btn.disabled = false;
+    }
+  }
+
+  // Check URL for ?sign= param
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    const signId = params.get('sign');
+    if (signId) {
+      // Wait for DOM then init principal page (no auth needed)
+      document.addEventListener('DOMContentLoaded', () => initPrincipalPage(signId));
+      // If DOM is already ready
+      if (document.readyState !== 'loading') initPrincipalPage(signId);
+    }
+  })();
 
   // הפעלה ראשונית של אש"ל
   loadEshel(
