@@ -894,8 +894,10 @@
   #loginError { color: #e74c3c; font-size: 13px; margin-top: 18px; display: none; }
 
   /* ===== User info in header ===== */
-  header { display: flex; align-items: center; justify-content: space-between; }
+  header { display: flex; align-items: center; justify-content: space-between; position: relative; }
   #headerTitle { flex: 1; }
+  #headerLogo { position: absolute; left: 50%; transform: translateX(-50%); background: #000; padding: 5px 10px; border-radius: 6px; display: flex; align-items: center; pointer-events: none; }
+  #headerLogo img { height: 40px; display: block; }
   #userInfo { display: none; align-items: center; gap: 10px; flex-shrink: 0; }
   #userAvatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.4); object-fit: cover; }
   #userName { font-size: 13px; color: #ccc; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -905,7 +907,7 @@
     padding: 5px 12px; font-size: 13px; cursor: pointer; font-family: inherit;
   }
   #logoutBtn:hover { background: rgba(255,255,255,0.2); }
-  @media (max-width: 600px) { #userName { display: none; } }
+  @media (max-width: 600px) { #userName { display: none; } #headerLogo { display: none; } }
   </style>
 </head>
 <body>
@@ -942,7 +944,10 @@
 
 <!-- מסך כניסה -->
 <div id="loginOverlay">
-  <h1>דוח פעילות ונוכחות — מורה של"ח</h1>
+  <div style="background:#000;padding:14px 24px;border-radius:10px;margin-bottom:20px;">
+    <img src="https://www.moked-shelach.co.il/tiyulim/Images/shelach.gif" alt='לוגו של"ח' style="height:80px;display:block;">
+  </div>
+  <h1>מילוי דוחות פעילות - מורים ומורות לשל"ח</h1>
   <p>יש להתחבר עם חשבון Google כדי להמשיך</p>
   <button id="googleSignInBtn" onclick="handleSignIn()">
     <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -958,6 +963,9 @@
 
 <header>
   <span id="headerTitle">דוח פעילות ונוכחות — מורה של"ח</span>
+  <div id="headerLogo">
+    <img src="https://www.moked-shelach.co.il/tiyulim/Images/shelach.gif" alt='לוגו של"ח'>
+  </div>
   <div id="userInfo">
     <img id="userAvatar" src="" alt="">
     <span id="userName"></span>
@@ -1210,6 +1218,11 @@
     <div id="principalSigStatus" style="margin-top:18px;padding-top:16px;border-top:1px solid #eee;"></div>
   </div>
 
+  <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;">
+    <button class="btn-print" onclick="printReport()">ייצא PDF ⬇</button>
+    <button class="btn-excel" onclick="exportReportToExcel()">ייצא אקסל ⬇</button>
+  </div>
+
 </div>
 
 <!-- דף אש"ל -->
@@ -1331,6 +1344,11 @@
         <button type="button" class="btn-clear-sig" onclick="clearEshelSignature()">✕ נקה חתימה</button>
       </div>
     </div>
+  </div>
+
+  <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;">
+    <button class="btn-print" onclick="printEshel()">ייצא PDF ⬇</button>
+    <button class="btn-excel" onclick="exportEshelToExcel()">ייצא אקסל ⬇</button>
   </div>
 
 </div>
