@@ -7,6 +7,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { overflow-x: hidden; max-width: 100%; }
@@ -721,11 +723,71 @@
   @media (max-width: 600px) {
     .eshel-info-grid { grid-template-columns: 1fr 1fr; }
   }
+
+  /* ===== Login Screen ===== */
+  #loginOverlay {
+    position: fixed; inset: 0;
+    background: #0a0a0a;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 9999; gap: 0;
+  }
+  #loginOverlay h1 { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 10px; text-align: center; padding: 0 20px; }
+  #loginOverlay p  { color: #888; font-size: 14px; margin-bottom: 36px; text-align: center; }
+  #googleSignInBtn {
+    display: flex; align-items: center; gap: 12px;
+    background: #fff; color: #333;
+    border: none; border-radius: 8px;
+    padding: 13px 28px; font-size: 16px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    box-shadow: 0 2px 16px rgba(255,255,255,0.1);
+    transition: background 0.15s;
+  }
+  #googleSignInBtn:hover { background: #f0f0f0; }
+  #googleSignInBtn svg { width: 22px; height: 22px; flex-shrink: 0; }
+  #loginError { color: #e74c3c; font-size: 13px; margin-top: 18px; display: none; }
+
+  /* ===== User info in header ===== */
+  header { display: flex; align-items: center; justify-content: space-between; }
+  #headerTitle { flex: 1; }
+  #userInfo { display: none; align-items: center; gap: 10px; flex-shrink: 0; }
+  #userAvatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.4); object-fit: cover; }
+  #userName { font-size: 13px; color: #ccc; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #logoutBtn {
+    background: rgba(255,255,255,0.1); color: #fff;
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;
+    padding: 5px 12px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  #logoutBtn:hover { background: rgba(255,255,255,0.2); }
+  @media (max-width: 600px) { #userName { display: none; } }
   </style>
 </head>
 <body>
 
-<header>דוח פעילות ונוכחות — מורה של"ח</header>
+<!-- מסך כניסה -->
+<div id="loginOverlay">
+  <h1>דוח פעילות ונוכחות — מורה של"ח</h1>
+  <p>יש להתחבר עם חשבון Google כדי להמשיך</p>
+  <button id="googleSignInBtn" onclick="handleSignIn()">
+    <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+    </svg>
+    התחבר עם Google
+  </button>
+  <div id="loginError">ההתחברות נכשלה. נסה שוב.</div>
+</div>
+
+<header>
+  <span id="headerTitle">דוח פעילות ונוכחות — מורה של"ח</span>
+  <div id="userInfo">
+    <img id="userAvatar" src="" alt="">
+    <span id="userName"></span>
+    <button id="logoutBtn" onclick="handleSignOut()">יציאה</button>
+  </div>
+</header>
 
 <div class="tabs">
   <div class="tab active" onclick="showPage('settings')">פרטים אישיים</div>
@@ -1379,6 +1441,49 @@
 </div>
 
 <script>
+  // --- Firebase Auth ---
+  const firebaseConfig = {
+    apiKey: "AIzaSyDpmHADZLmgJsPBUmpa3_lfeMjtVE1f8Ws",
+    authDomain: "shelach-reports.firebaseapp.com",
+    projectId: "shelach-reports",
+    storageBucket: "shelach-reports.firebasestorage.app",
+    messagingSenderId: "890845711067",
+    appId: "1:890845711067:web:746dde4901125d1acf9afe"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const provider = new firebase.auth.GoogleAuthProvider();
+
+  auth.onAuthStateChanged(function(user) {
+    if (user) {
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('userInfo').style.display = 'flex';
+      document.getElementById('userName').textContent = user.displayName || '';
+      const avatar = document.getElementById('userAvatar');
+      if (user.photoURL) {
+        avatar.src = user.photoURL;
+        avatar.style.display = 'block';
+      } else {
+        avatar.style.display = 'none';
+      }
+    } else {
+      document.getElementById('loginOverlay').style.display = 'flex';
+      document.getElementById('userInfo').style.display = 'none';
+    }
+  });
+
+  function handleSignIn() {
+    document.getElementById('loginError').style.display = 'none';
+    auth.signInWithPopup(provider).catch(function(error) {
+      console.error('Sign-in error:', error);
+      document.getElementById('loginError').style.display = 'block';
+    });
+  }
+
+  function handleSignOut() {
+    auth.signOut();
+  }
+
   // --- EmailJS ---
   const EMAILJS_SERVICE_ID  = 'service_dgrvly8';
   const EMAILJS_TEMPLATE_ID = 'template_p5i1y18';
