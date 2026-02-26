@@ -1069,7 +1069,11 @@
   }
 
   function loadReport(month, year) {
-    // נקה הערות, חתימה ותאריך לפני הטעינה
+    // נקה הכל לפני טעינת החודש החדש
+    document.querySelectorAll('#reportBody tr').forEach(row => {
+      if (row.classList.contains('row-vacation')) return;
+      row.querySelectorAll('input').forEach(inp => { inp.value = ''; });
+    });
     document.getElementById('note-chet').value      = '';
     document.getElementById('note-tet').value       = '';
     document.getElementById('note-masaot').value    = '';
@@ -1078,7 +1082,7 @@
     sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
 
     const raw = localStorage.getItem(reportKey(month, year));
-    if (!raw) return;
+    if (!raw) { updateTotal(); return; }
     const data = JSON.parse(raw);
 
     document.querySelectorAll('#reportBody tr').forEach(row => {
