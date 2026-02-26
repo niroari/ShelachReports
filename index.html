@@ -9,6 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { overflow-x: hidden; max-width: 100%; }
@@ -1453,6 +1454,7 @@
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const provider = new firebase.auth.GoogleAuthProvider();
+  const db = firebase.firestore();
 
   auth.onAuthStateChanged(function(user) {
     if (user) {
@@ -1466,6 +1468,8 @@
       } else {
         avatar.style.display = 'none';
       }
+      // Load user data from Firestore after sign-in
+      loadSettings();
     } else {
       document.getElementById('loginOverlay').style.display = 'flex';
       document.getElementById('userInfo').style.display = 'none';
@@ -1489,6 +1493,20 @@
   const EMAILJS_TEMPLATE_ID = 'template_p5i1y18';
   const EMAILJS_PUBLIC_KEY  = '8IUAL6cAW8wqX18fV';
   emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+  // --- Firestore helpers ---
+  async function saveToCloud(collection, docId, data) {
+    if (!auth.currentUser) return;
+    const uid = auth.currentUser.uid;
+    await db.collection('users').doc(uid).collection(collection).doc(docId).set(data);
+  }
+
+  async function loadFromCloud(collection, docId) {
+    if (!auth.currentUser) return null;
+    const uid = auth.currentUser.uid;
+    const snap = await db.collection('users').doc(uid).collection(collection).doc(docId).get();
+    return snap.exists ? snap.data() : null;
+  }
 
   // מעבר בין דפים
   function showPage(name) {
@@ -1532,6 +1550,7 @@
     };
 
     localStorage.setItem('shelach_settings', JSON.stringify(data));
+    saveToCloud('settings', 'main', data);
 
     const msg = document.getElementById('saveMsg');
     msg.classList.add('show');
@@ -1554,10 +1573,7 @@
     school:        ['', '', '', '', '', ''],
   };
 
-  function loadSettings() {
-    const raw = localStorage.getItem('shelach_settings');
-    const d   = raw ? JSON.parse(raw) : DEFAULTS;
-
+  function applySettings(d) {
     document.getElementById('firstName').value     = d.firstName     ?? '';
     document.getElementById('lastName').value      = d.lastName      ?? '';
     document.getElementById('idNumber').value      = d.idNumber      ?? '';
@@ -1577,7 +1593,17 @@
     document.getElementById('workDays').value = d.workDays ?? '';
   }
 
-  loadSettings();
+  async function loadSettings() {
+    // Try Firestore first; fall back to localStorage
+    const cloud = await loadFromCloud('settings', 'main');
+    if (cloud) {
+      applySettings(cloud);
+      localStorage.setItem('shelach_settings', JSON.stringify(cloud));
+    } else {
+      const raw = localStorage.getItem('shelach_settings');
+      applySettings(raw ? JSON.parse(raw) : DEFAULTS);
+    }
+  }
 
   // שמות ימי שבוע בעברית (0=ראשון, 6=שבת)
   const dayNames = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
