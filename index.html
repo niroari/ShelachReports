@@ -10,56 +10,59 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #f0f4f8;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f0f2f5;
       color: #222;
       direction: rtl;
     }
 
     header {
-      background: #1a5276;
+      background: #000000;
       color: white;
-      padding: 16px 32px;
+      padding: 18px 36px;
       font-size: 20px;
-      font-weight: bold;
+      font-weight: 700;
+      letter-spacing: 0.3px;
     }
 
     .tabs {
       display: flex;
-      background: #154360;
-      padding: 0 32px;
+      background: #111111;
+      padding: 0 36px;
     }
 
     .tab {
-      padding: 12px 24px;
-      color: #aed6f1;
+      padding: 14px 28px;
+      color: #888;
       cursor: pointer;
       border-bottom: 3px solid transparent;
-      font-size: 15px;
+      font-size: 14px;
+      transition: all 0.2s;
     }
 
     .tab.active {
-      color: white;
-      border-bottom-color: #f39c12;
+      color: #ffffff;
+      border-bottom-color: #2ecc71;
     }
 
-    .page { display: none; padding: 32px; }
+    .page { display: none; padding: 36px; }
     .page.active { display: block; }
 
     .card {
       background: white;
-      border-radius: 8px;
-      padding: 28px;
-      max-width: 700px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 720px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+      border: 1px solid #e8e8e8;
     }
 
     .card h2 {
       font-size: 18px;
-      margin-bottom: 24px;
-      color: #1a5276;
-      border-bottom: 2px solid #d6eaf8;
-      padding-bottom: 10px;
+      color: #111111;
+      border-bottom: 2px solid #2ecc71;
+      padding-bottom: 12px;
+      margin-bottom: 28px;
     }
 
     .form-grid {
@@ -79,31 +82,36 @@
     }
 
     label {
-      font-size: 13px;
-      color: #555;
+      font-size: 12px;
+      color: #666;
       font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     input {
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      padding: 9px 12px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 10px 14px;
       font-size: 15px;
       font-family: inherit;
       direction: rtl;
+      transition: border-color 0.2s;
     }
 
     input:focus {
       outline: none;
-      border-color: #1a5276;
-      box-shadow: 0 0 0 2px #d6eaf8;
+      border-color: #2ecc71;
+      box-shadow: 0 0 0 3px rgba(46,204,113,0.15);
     }
 
     .section-title {
-      font-size: 14px;
-      font-weight: bold;
-      color: #1a5276;
-      margin: 20px 0 12px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #2ecc71;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 24px 0 14px;
       grid-column: 1 / -1;
     }
 
@@ -117,8 +125,8 @@
     .hours-grid .day-label {
       text-align: center;
       font-size: 13px;
-      color: #555;
-      font-weight: bold;
+      font-weight: 700;
+      color: #333;
     }
 
     .hours-grid input {
@@ -128,22 +136,24 @@
 
     .btn-save {
       margin-top: 24px;
-      background: #1a5276;
+      background: #111111;
       color: white;
       border: none;
-      padding: 12px 32px;
+      padding: 12px 36px;
       font-size: 15px;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
       font-family: inherit;
+      font-weight: 600;
+      transition: background 0.2s;
     }
 
-    .btn-save:hover { background: #154360; }
+    .btn-save:hover { background: #2ecc71; color: #111; }
 
     .save-msg {
       display: inline-block;
       margin-right: 12px;
-      color: #1e8449;
+      color: #2ecc71;
       font-size: 14px;
       opacity: 0;
       transition: opacity 0.3s;
@@ -151,31 +161,32 @@
 
     .save-msg.show { opacity: 1; }
 
-    /* כפתור PDF */
     .btn-print {
       margin-right: auto;
-      background: #1e8449;
-      color: white;
+      background: #2ecc71;
+      color: #111111;
       border: none;
-      padding: 8px 20px;
+      padding: 9px 22px;
       font-size: 15px;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
       font-family: inherit;
+      font-weight: 700;
     }
-    .btn-print:hover { background: #196f3d; }
+    .btn-print:hover { background: #27ae60; }
 
     .btn-clear {
-      background: #c0392b;
+      background: #e74c3c;
       color: white;
       border: none;
-      padding: 8px 20px;
+      padding: 9px 22px;
       font-size: 15px;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
       font-family: inherit;
+      font-weight: 600;
     }
-    .btn-clear:hover { background: #a93226; }
+    .btn-clear:hover { background: #c0392b; }
 
     /* עמוד PDF — ממוקם מחוץ למסך, ייצואלי בלבד */
     #pdfPage {
@@ -207,7 +218,27 @@
 
     /* טבלה חודשית */
     .report-card {
-      padding: 24px 32px;
+      padding: 28px 36px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+      border: 1px solid #e8e8e8;
+    }
+
+    .month-selector {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .month-selector select {
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 15px;
+      font-family: inherit;
+      direction: rtl;
     }
 
     .report-table-wrap {
@@ -219,40 +250,42 @@
       border-collapse: collapse;
       font-size: 14px;
       background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      border-radius: 8px;
+      border-radius: 12px;
       overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
     }
 
     .report-table th {
-      background: #1a5276;
+      background: #111111;
       color: white;
-      padding: 10px 8px;
+      padding: 11px 8px;
       text-align: center;
       font-weight: 600;
       white-space: nowrap;
+      font-size: 13px;
     }
 
     .report-table td {
-      border: 1px solid #ddd;
+      border: 1px solid #ececec;
       padding: 3px 4px;
       text-align: center;
       vertical-align: middle;
     }
 
     .report-table tbody tr:nth-child(even) {
-      background: #f7fbff;
+      background: #fafafa;
     }
 
     .report-table tbody tr:hover {
-      background: #eaf4fb;
+      background: #f0fff4;
     }
 
     .report-table tfoot td {
-      background: #eaf4fb;
+      background: #111111;
+      color: white;
       font-weight: bold;
-      padding: 8px;
-      border-top: 2px solid #1a5276;
+      padding: 10px 8px;
+      border-top: none;
     }
 
     .report-table input[type="text"] {
@@ -277,98 +310,27 @@
     }
 
     .report-table input:focus {
-      outline: 2px solid #aed6f1;
+      outline: 2px solid #2ecc71;
       border-radius: 3px;
-      background: #fff;
-    }
-
-    /* בחירת חודש */
-    .month-selector {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-      font-size: 15px;
-    }
-
-    .month-selector select {
-      padding: 7px 12px;
-      font-size: 15px;
-      font-family: inherit;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      direction: rtl;
+      background: #f0fff4;
     }
 
     /* שורת שבת — מוסתרת */
     .row-shabbat { display: none; }
 
     /* קו עבה מתחת לשישי — הפרדת שבועות */
-    .row-week-end td { border-bottom: 2px solid #888 !important; }
+    .row-week-end td { border-bottom: 2px solid #ccc !important; }
 
     /* שורת חג */
     .row-vacation {
-      background: #f0f0f0 !important;
-      color: #888;
+      background: #f8f8f8 !important;
+      color: #aaa;
     }
 
     .row-vacation input {
       background: transparent !important;
-      color: #888;
+      color: #aaa;
       font-style: italic;
-    }
-
-    /* חלק נושאים */
-    .notes-section {
-      background: white;
-      border-radius: 8px;
-      padding: 20px 24px;
-      margin-top: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-
-    .notes-section h3 {
-      font-size: 16px;
-      color: #1a5276;
-      margin-bottom: 16px;
-      border-bottom: 2px solid #d6eaf8;
-      padding-bottom: 8px;
-    }
-
-    .notes-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
-    .notes-item {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .notes-item label {
-      font-size: 13px;
-      color: #555;
-      font-weight: 600;
-    }
-
-    .notes-item textarea {
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      padding: 8px 10px;
-      font-size: 14px;
-      font-family: inherit;
-      direction: rtl;
-      resize: vertical;
-      min-height: 72px;
-      line-height: 1.5;
-    }
-
-    .notes-item textarea:focus {
-      outline: none;
-      border-color: #1a5276;
-      box-shadow: 0 0 0 2px #d6eaf8;
     }
 
     /* עמודות צרות — ימים, היעדרות, ש"נ, כיתה */
@@ -392,16 +354,71 @@
       width: 180px;
     }
 
+    /* חלק נושאים */
+    .notes-section {
+      background: white;
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-top: 24px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+      border: 1px solid #e8e8e8;
+    }
+
+    .notes-section h3 {
+      font-size: 16px;
+      color: #111;
+      margin-bottom: 18px;
+      border-bottom: 2px solid #2ecc71;
+      padding-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .notes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .notes-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .notes-item label {
+      font-size: 12px;
+      color: #666;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .notes-item textarea {
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      direction: rtl;
+      resize: vertical;
+      min-height: 80px;
+      line-height: 1.5;
+    }
+
+    .notes-item textarea:focus {
+      outline: none;
+      border-color: #2ecc71;
+      box-shadow: 0 0 0 3px rgba(46,204,113,0.15);
+    }
+
   /* ===== מובייל ===== */
   @media (max-width: 600px) {
 
-    /* כותרת */
     header {
       padding: 12px 16px;
       font-size: 16px;
     }
 
-    /* טאבים — מלאים לרוחב */
     .tabs { padding: 0; }
     .tab {
       flex: 1;
@@ -410,30 +427,23 @@
       font-size: 13px;
     }
 
-    /* ריווח עמודים */
-    .page { padding: 12px; }
-    .card { padding: 16px; }
-    .report-card { padding: 12px; }
+    .page { padding: 14px; }
+    .card { padding: 18px; }
+    .report-card { padding: 14px; }
 
-    /* טופס הגדרות — עמודה אחת */
     .form-grid { grid-template-columns: 1fr; }
     .form-group.full { grid-column: 1; }
 
-    /* שורת שעות — אותן 6 עמודות, פחות רווח */
     .hours-grid { gap: 4px; }
-    .hours-grid .day-label { font-size: 12px; }
 
-    /* מניעת זום ב-iOS: כל input/textarea/select מעל 16px */
     input, textarea, select { font-size: 16px !important; }
 
-    /* כפתורים — ניתנים ללחיצה בנוחות */
     .btn-save {
       width: 100%;
       padding: 14px;
       font-size: 16px;
     }
 
-    /* בחירת חודש — עוברת לשתי שורות */
     .month-selector { flex-wrap: wrap; }
     .btn-print {
       width: 100%;
@@ -442,7 +452,6 @@
       font-size: 16px;
     }
 
-    /* טבלת דוח חודשי — עמודות קצת יותר צרות */
     .report-table th {
       padding: 8px 3px;
       font-size: 11px;
@@ -457,20 +466,16 @@
       min-width: 40px;
     }
 
-    /* inputs בתוך הטבלה — גובה מינימלי ללחיצה נוחה */
     .report-table input {
       min-height: 40px;
       padding: 4px 2px;
     }
 
-    /* הערות נושאים — עמודה אחת */
     .notes-grid { grid-template-columns: 1fr; }
     .notes-item textarea { min-height: 90px; }
 
-    /* notes-section צמוד יותר */
-    .notes-section { padding: 14px 14px; }
+    .notes-section { padding: 14px; }
 
-    /* חתימה — עמודה אחת במובייל */
     .sig-row { flex-direction: column; }
     .sig-date { flex: none; width: 100%; }
   }
@@ -491,8 +496,8 @@
   .sig-date input[type="date"] {
     padding: 9px 12px;
     font-size: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
     font-family: inherit;
   }
   .sig-canvas-wrap {
@@ -503,25 +508,25 @@
     gap: 6px;
   }
   #signatureCanvas {
-    display: block;
-    width: 100%;
-    height: 110px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
     background: white;
     cursor: crosshair;
     touch-action: none;
+    display: block;
+    width: 100%;
+    height: 110px;
   }
   .btn-clear-sig {
-    align-self: flex-start;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    background: #f8f8f8;
+    color: #666;
     padding: 6px 16px;
     font-size: 13px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background: #f5f5f5;
     cursor: pointer;
+    align-self: flex-start;
     font-family: inherit;
-    color: #555;
   }
   .btn-clear-sig:hover { background: #eee; }
   </style>
@@ -531,7 +536,7 @@
 <header>דוח פעילות ונוכחות — מורה של"ח</header>
 
 <div class="tabs">
-  <div class="tab active" onclick="showPage('settings')">הגדרות</div>
+  <div class="tab active" onclick="showPage('settings')">פרטים אישיים</div>
   <div class="tab" onclick="showPage('report')">דוח חודשי</div>
 </div>
 
