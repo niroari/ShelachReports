@@ -189,6 +189,43 @@
     }
     .btn-clear:hover { background: #c0392b; }
 
+    .btn-send {
+      background: #2980b9;
+      color: white;
+      border: none;
+      padding: 9px 22px;
+      font-size: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+    }
+    .btn-send:hover { background: #2471a3; }
+
+    #sendModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+    #sendModal.open { display: flex; }
+    .send-modal-box {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      width: 92%;
+      max-width: 660px;
+      max-height: 88vh;
+      overflow-y: auto;
+      direction: rtl;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+    }
+    .send-modal-box h2 { margin: 0 0 6px; font-size: 18px; }
+    .send-modal-box p  { color: #666; font-size: 13px; margin: 0 0 18px; }
+
     /* עמוד PDF — ממוקם מחוץ למסך, ייצואלי בלבד */
     #pdfPage {
       position: fixed;
@@ -816,6 +853,7 @@
         <option value="2026">2026</option>
       </select>
       <button class="btn-print" onclick="printReport()">ייצא PDF ⬇</button>
+      <button class="btn-send" onclick="openSendModal()">שלח למחוז ת"א ✉</button>
       <button class="btn-clear" onclick="clearReport()">נקה נתונים</button>
     </div>
 
@@ -2126,12 +2164,175 @@
     }
   }
 
+  // --- שליחה למחוז ת"א ---
+
+  async function openSendModal() {
+    document.getElementById('sendModal').classList.add('open');
+    document.getElementById('sendMessage').value = '';
+    document.getElementById('sendPreview').innerHTML =
+      '<span style="color:#aaa;font-size:13px;">טוען תצוגה מקדימה...</span>';
+
+    try {
+      // מכין את עמוד ה-PDF (זהה ל-printReport)
+      const month = parseInt(document.getElementById('selectMonth').value);
+      const year  = parseInt(document.getElementById('selectYear').value);
+      const raw   = localStorage.getItem('shelach_settings');
+      const s     = raw ? JSON.parse(raw) : DEFAULTS;
+
+      document.getElementById('pdf-district').textContent  = s.district   || '';
+      document.getElementById('pdf-school').textContent    = s.schoolName || '';
+      document.getElementById('pdf-month').textContent     = MONTH_NAMES[month];
+      document.getElementById('pdf-year').textContent      = year;
+      document.getElementById('pdf-id').textContent        = s.idNumber      || '';
+      document.getElementById('pdf-lastname').textContent  = s.lastName      || '';
+      document.getElementById('pdf-firstname').textContent = s.firstName     || '';
+      document.getElementById('pdf-jobscope').textContent  = s.jobScope      || '';
+      document.getElementById('pdf-address').textContent   = s.address       || '';
+      document.getElementById('pdf-substitute').textContent = s.substituteFor || '';
+      document.getElementById('pdf-workdays').textContent  = s.workDays      || '___________________________';
+      [0,1,2,3,4,5].forEach(i => {
+        document.getElementById('pdf-sh' + i).textContent = s.shelach?.[i] || '';
+        document.getElementById('pdf-sc' + i).textContent = s.school?.[i]  || '';
+      });
+
+      const sigDataUrl  = sigIsEmpty() ? '' : sigCanvas.toDataURL();
+      const rawDate     = document.getElementById('reportDate').value;
+      const dateDisplay = rawDate
+        ? new Date(rawDate + 'T00:00:00').toLocaleDateString('he-IL')
+        : '___________';
+      const pdfNotes = {
+        chet:      document.getElementById('note-chet').value,
+        tet:       document.getElementById('note-tet').value,
+        masaot:    document.getElementById('note-masaot').value,
+        mishatzim: document.getElementById('note-mishatzim').value,
+      };
+
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const tbody = document.getElementById('pdf-body');
+      tbody.innerHTML = '';
+      let totalHours = 0;
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date    = new Date(year, month, day);
+        const weekday = date.getDay();
+        if (weekday === 6) continue;
+        const vacation  = getVacationLabel(date);
+        const reportRow = document.querySelector(`#reportBody tr[data-day="${day}"]`);
+        const inputs    = reportRow ? reportRow.querySelectorAll('input') : [];
+        const hours  = inputs[0]?.value || '';
+        const shanan = inputs[1]?.value || '';
+        const kita   = inputs[2]?.value || '';
+        const desc   = inputs[3]?.value || '';
+        const reason = inputs[4]?.value || '';
+        let note = RIGHT_NOTES[day] || '';
+        if (day === 2  && pdfNotes.chet)      note += '<br>' + pdfNotes.chet;
+        if (day === 7  && pdfNotes.tet)       note += '<br>' + pdfNotes.tet;
+        if (day === 16 && pdfNotes.masaot)    note += '<br>' + pdfNotes.masaot;
+        if (day === 21 && pdfNotes.mishatzim) note += '<br>' + pdfNotes.mishatzim;
+        if (shanan) totalHours += parseFloat(shanan) || 0;
+        const bg = vacation ? '#f0f0f0' : 'transparent';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="border:1px solid #000;padding:1px 2px;text-align:center;background:${bg};">${day}</td>
+          <td style="border:1px solid #000;padding:1px 2px;text-align:center;background:${bg};">${dayNames[weekday]}</td>
+          <td style="border:1px solid #000;padding:1px 2px;text-align:center;background:${bg};">${hours}</td>
+          <td style="border:1px solid #000;padding:1px 2px;text-align:center;background:${bg};">${shanan}</td>
+          <td style="border:1px solid #000;padding:1px 2px;text-align:center;background:${bg};">${kita}</td>
+          <td colspan="2" style="border:1px solid #000;padding:1px 4px;text-align:right;background:${bg};">${desc}${reason ? ' — ' + reason : ''}</td>
+          <td style="border:1px solid #000;padding:1px 4px;text-align:right;font-size:7pt;background:${bg};vertical-align:top;">${note}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+      document.getElementById('pdf-total').textContent = totalHours || 0;
+      const sigCell  = document.getElementById('pdf-sig-cell');
+      const dateCell = document.getElementById('pdf-date-cell');
+      if (sigDataUrl) {
+        sigCell.innerHTML = 'חתימת המורה: <img src="' + sigDataUrl + '" style="height:28px;vertical-align:middle;margin-right:4px;">';
+      } else {
+        sigCell.textContent = 'חתימת המורה: ____________________';
+      }
+      dateCell.textContent = 'תאריך: ' + dateDisplay;
+
+      await new Promise(r => setTimeout(r, 80));
+      const canvas = await html2canvas(document.getElementById('pdfPage'), {
+        scale: 0.45, useCORS: true, logging: false, backgroundColor: '#ffffff',
+      });
+      const img = document.createElement('img');
+      img.src = canvas.toDataURL('image/png');
+      img.style.cssText = 'max-width:100%;height:auto;display:block;border-radius:4px;';
+      const preview = document.getElementById('sendPreview');
+      preview.innerHTML = '';
+      preview.appendChild(img);
+
+    } catch(e) {
+      document.getElementById('sendPreview').innerHTML =
+        '<span style="color:#c00;font-size:13px;">שגיאה בטעינת תצוגה מקדימה</span>';
+    }
+  }
+
+  function closeSendModal() {
+    document.getElementById('sendModal').classList.remove('open');
+  }
+
+  async function confirmSend() {
+    const month     = parseInt(document.getElementById('selectMonth').value);
+    const year      = parseInt(document.getElementById('selectYear').value);
+    const raw       = localStorage.getItem('shelach_settings');
+    const s         = raw ? JSON.parse(raw) : DEFAULTS;
+    const name      = [s.firstName, s.lastName].filter(Boolean).join(' ') || 'מורה';
+    const monthName = MONTH_NAMES[month];
+    const message   = document.getElementById('sendMessage').value.trim();
+
+    // הורד PDF
+    await printReport();
+
+    // פתח אפליקציית מייל
+    const subject  = encodeURIComponent(`${name} - דוחות ${monthName}`);
+    const bodyText = (message ? message + '\n\n' : '') +
+      `מצורף דוח חודשי ${monthName} ${year}.\n(הקובץ הורד אוטומטית — יש לצרף אותו למייל)`;
+    window.open(`mailto:DOCHOTTELAVIV@gmail.com?subject=${subject}&body=${encodeURIComponent(bodyText)}`);
+
+    closeSendModal();
+  }
+
   // הפעלה ראשונית של אש"ל
   loadEshel(
     parseInt(document.getElementById('eshelMonth').value),
     parseInt(document.getElementById('eshelYear').value)
   );
 </script>
+
+<!-- מודל שליחה למחוז -->
+<div id="sendModal">
+  <div class="send-modal-box">
+    <h2>✉ שלח דוח למחוז ת"א</h2>
+    <p>ה-PDF יורד למכשיר שלך — יש לצרף אותו ידנית למייל שייפתח.</p>
+
+    <div style="margin-bottom:16px;">
+      <div style="font-weight:600;font-size:13px;color:#444;margin-bottom:8px;">תצוגה מקדימה:</div>
+      <div id="sendPreview" style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;background:#f5f5f5;min-height:100px;display:flex;align-items:center;justify-content:center;">
+        <span style="color:#aaa;font-size:13px;">טוען...</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:22px;">
+      <div style="font-weight:600;font-size:13px;color:#444;margin-bottom:8px;">הודעה (אופציונלי):</div>
+      <textarea id="sendMessage" rows="3"
+        placeholder="כתוב הודעה שתופיע בגוף המייל..."
+        style="width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:8px;padding:10px;font-family:inherit;font-size:14px;resize:vertical;direction:rtl;"></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button onclick="confirmSend()"
+        style="background:#2980b9;color:white;border:none;border-radius:8px;padding:11px 26px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">
+        שלח ✉
+      </button>
+      <button onclick="closeSendModal()"
+        style="background:#eee;border:none;border-radius:8px;padding:11px 20px;font-size:14px;cursor:pointer;font-family:inherit;">
+        ביטול
+      </button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
