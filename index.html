@@ -529,6 +529,144 @@
     font-family: inherit;
   }
   .btn-clear-sig:hover { background: #eee; }
+
+  /* ===== אש"ל ===== */
+  .eshel-info-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .eshel-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .eshel-info-item .info-value {
+    font-size: 15px;
+    color: #111;
+    padding: 8px 0;
+    border-bottom: 1.5px solid #e0e0e0;
+    min-height: 36px;
+  }
+  .eshel-info-item .info-value-input {
+    font-size: 15px;
+    color: #111;
+    padding: 6px 6px;
+    border: none;
+    border-bottom: 2px solid #4a90d9;
+    border-radius: 3px;
+    background: #f5f8ff;
+    width: 100%;
+    box-sizing: border-box;
+    outline: none;
+  }
+  .eshel-info-item .info-value-input:focus {
+    background: #e8f0fe;
+    border-bottom-color: #1a6dd4;
+  }
+  .eshel-table-wrap {
+    overflow-x: auto;
+  }
+  .eshel-table {
+    border-collapse: collapse;
+    font-size: 13px;
+    background: white;
+    min-width: 980px;
+    width: 100%;
+  }
+  .eshel-table th {
+    background: #111111;
+    color: white;
+    padding: 8px 3px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .eshel-table td {
+    border: 1px solid #ececec;
+    padding: 2px 1px;
+    text-align: center;
+    vertical-align: middle;
+  }
+  .eshel-table tbody tr:nth-child(even) { background: #fafafa; }
+  .eshel-table tbody tr:hover { background: #f0fff4; }
+  .eshel-table input[type="text"] {
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: center;
+    font-size: 13px;
+    font-family: inherit;
+    padding: 3px 1px;
+    direction: rtl;
+  }
+  .eshel-table input[type="date"] {
+    border: none;
+    background: transparent;
+    font-size: 11px;
+    font-family: inherit;
+    padding: 2px;
+    width: 118px;
+  }
+  .eshel-table input:focus {
+    outline: 2px solid #2ecc71;
+    border-radius: 3px;
+    background: #f0fff4;
+  }
+  .eshel-table input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #2ecc71;
+  }
+  #eshelSigCanvas {
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    cursor: crosshair;
+    touch-action: none;
+    display: block;
+    width: 100%;
+    height: 110px;
+  }
+  #eshelPdfPage {
+    position: fixed;
+    left: -9999px;
+    top: 0;
+    width: 1122px;
+    min-height: 794px;
+    background: white;
+    font-family: 'Times New Roman', Times, serif;
+    direction: rtl;
+    padding: 10px 14px;
+    box-sizing: border-box;
+    color: #000;
+    font-size: 8pt;
+  }
+  /* תאי טבלת ה-PDF הסטטיים */
+  #eshelPdfPage .epd-c {
+    border: 1px solid #000;
+    padding: 4px 2px;
+    background: #ffffff;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 8pt;
+    height: 26px;
+  }
+  #eshelPdfPage .epd-c-l {
+    border: 1px solid #000;
+    padding: 4px 3px;
+    background: #ffffff;
+    text-align: right;
+    vertical-align: middle;
+    font-size: 8pt;
+    height: 26px;
+  }
+  @media (max-width: 600px) {
+    .eshel-info-grid { grid-template-columns: 1fr 1fr; }
+  }
   </style>
 </head>
 <body>
@@ -538,6 +676,7 @@
 <div class="tabs">
   <div class="tab active" onclick="showPage('settings')">פרטים אישיים</div>
   <div class="tab" onclick="showPage('report')">דוח חודשי</div>
+  <div class="tab" onclick="showPage('eshel')">אש"ל</div>
 </div>
 
 <!-- דף הגדרות -->
@@ -577,6 +716,16 @@
       <div class="form-group">
         <label>במקום מדריך</label>
         <input type="text" id="substituteFor" placeholder="(אופציונלי)">
+      </div>
+
+      <div class="form-group">
+        <label>מקום מגורים</label>
+        <input type="text" id="homeCity" placeholder="עיר / יישוב">
+      </div>
+
+      <div class="form-group">
+        <label>מקום עבודה</label>
+        <input type="text" id="workplace" placeholder="עיר / יישוב">
       </div>
 
       <div class="form-group full section-title">בית הספר</div>
@@ -768,6 +917,128 @@
 
 </div>
 
+<!-- דף אש"ל -->
+<div class="page" id="page-eshel">
+
+  <!-- בחירת חודש/שנה -->
+  <div class="report-card" style="margin-bottom:20px;">
+    <div class="month-selector">
+      <label>חודש:</label>
+      <select id="eshelMonth" onchange="loadEshel(parseInt(this.value), parseInt(document.getElementById('eshelYear').value))">
+        <option value="8">ספטמבר</option>
+        <option value="9">אוקטובר</option>
+        <option value="10">נובמבר</option>
+        <option value="11">דצמבר</option>
+        <option value="0">ינואר</option>
+        <option value="1">פברואר</option>
+        <option value="2">מרץ</option>
+        <option value="3">אפריל</option>
+        <option value="4">מאי</option>
+        <option value="5">יוני</option>
+      </select>
+      <label>שנה:</label>
+      <select id="eshelYear" onchange="loadEshel(parseInt(document.getElementById('eshelMonth').value), parseInt(this.value))">
+        <option value="2025">2025</option>
+        <option value="2026">2026</option>
+      </select>
+      <button class="btn-print" onclick="printEshel()">ייצא PDF ⬇</button>
+      <button class="btn-clear" onclick="clearEshel()">נקה נתונים</button>
+    </div>
+  </div>
+
+  <!-- פרטים קבועים (מהגדרות) -->
+  <div class="card" style="margin-bottom:20px;max-width:none;">
+    <h2>פרטים קבועים</h2>
+    <div class="eshel-info-grid">
+      <div class="eshel-info-item">
+        <label>מספר זהות</label>
+        <div class="info-value" id="eshel-info-id"></div>
+      </div>
+      <div class="eshel-info-item">
+        <label>שם פרטי</label>
+        <div class="info-value" id="eshel-info-firstname"></div>
+      </div>
+      <div class="eshel-info-item">
+        <label>שם משפחה</label>
+        <div class="info-value" id="eshel-info-lastname"></div>
+      </div>
+      <div class="eshel-info-item">
+        <label>מקום מגורים</label>
+        <div class="info-value" id="eshel-info-homecity"></div>
+      </div>
+      <div class="eshel-info-item">
+        <label>מקום עבודה</label>
+        <div class="info-value" id="eshel-info-workplace"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- טבלת פעילות -->
+  <div class="report-card" style="margin-bottom:20px;">
+    <div class="eshel-table-wrap">
+      <table class="eshel-table">
+        <thead>
+          <tr>
+            <th>תאריך</th>
+            <th>יום<br>בשבוע</th>
+            <th>משעה</th>
+            <th>עד שעה</th>
+            <th>ממקום</th>
+            <th>למקום</th>
+            <th>מטרת הפעולה</th>
+            <th>בין<br>עירוני</th>
+            <th>עירוני</th>
+            <th>בוקר</th>
+            <th>צהריים</th>
+            <th>ערב</th>
+            <th>לינה<br>במבנה/שטח</th>
+            <th>סה"כ</th>
+          </tr>
+        </thead>
+        <tbody id="eshelBody">
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+          <tr><td><input type="date" class="eshel-date" oninput="fillEshelDay(this)"></td><td><input type="text" class="eshel-dayname" readonly style="color:#666;width:52px;"></td><td><input type="text" class="eshel-from-time" style="width:48px;"></td><td><input type="text" class="eshel-to-time" style="width:48px;"></td><td><input type="text" class="eshel-from-place"></td><td><input type="text" class="eshel-to-place"></td><td><input type="text" class="eshel-purpose" style="min-width:110px;"></td><td><input type="checkbox" class="eshel-bein-iri"></td><td><input type="checkbox" class="eshel-iri"></td><td><input type="checkbox" class="eshel-boker"></td><td><input type="checkbox" class="eshel-tsaharaim"></td><td><input type="checkbox" class="eshel-erev"></td><td><input type="checkbox" class="eshel-lina"></td><td><input type="text" class="eshel-total" style="width:42px;"></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- חתימה ותאריך -->
+  <div class="notes-section" style="margin-bottom:20px;">
+    <h3>חתימה ותאריך</h3>
+    <div class="sig-row">
+      <div class="sig-date">
+        <label for="eshelDate">תאריך מילוי</label>
+        <input type="date" id="eshelDate">
+      </div>
+      <div class="sig-canvas-wrap">
+        <label>חתימת העובד (צייר עם האצבע או העכבר)</label>
+        <canvas id="eshelSigCanvas" width="600" height="110"></canvas>
+        <button type="button" class="btn-clear-sig" onclick="clearEshelSignature()">✕ נקה חתימה</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
 <!-- עמוד PDF — מחוץ למסך, נוצר דינמית -->
 <div id="pdfPage">
 
@@ -912,6 +1183,145 @@
 
 </div>
 
+<!-- עמוד PDF אש"ל — לרוחב (Landscape A4 = 1122×794px), מחוץ למסך -->
+<div id="eshelPdfPage">
+
+  <!-- שורת כותרת + פרטי עובד (הכל בשורה אחת) -->
+  <table style="width:100%;border-collapse:collapse;margin-bottom:32px;table-layout:fixed;">
+    <colgroup>
+      <col style="width:170px;">
+      <col style="width:110px;">
+      <col style="width:148px;">
+      <col style="width:110px;">
+      <col style="width:200px;">
+      <col style="width:200px;">
+      <col style="width:178px;">
+    </colgroup>
+    <tr>
+      <td rowspan="2" style="border:2px solid #000;padding:4px 6px;text-align:center;background:#e8e8e8;vertical-align:middle;">
+        <div style="font-size:10pt;font-weight:bold;line-height:1.3;">טופס אש"ל</div>
+        <div style="font-size:7pt;margin-top:2px;">משרד החינוך / מינהל חברה ונוער / מורי של"ח</div>
+      </td>
+      <th style="border:1px solid #000;padding:2px 4px;text-align:center;font-size:7.5pt;background:#e8e8e8;">מ.זהות</th>
+      <th style="border:1px solid #000;padding:2px 4px;text-align:center;font-size:7.5pt;background:#e8e8e8;">שם משפחה</th>
+      <th style="border:1px solid #000;padding:2px 4px;text-align:center;font-size:7.5pt;background:#e8e8e8;">שם פרטי</th>
+      <th style="border:1px solid #000;padding:2px 4px;text-align:center;font-size:7.5pt;background:#e8e8e8;">מקום מגורים</th>
+      <th style="border:1px solid #000;padding:2px 4px;text-align:center;font-size:7.5pt;background:#e8e8e8;">מקום עבודה</th>
+      <th style="border:1px solid #000;padding:2px 4px;text-align:center;font-size:7.5pt;background:#e8e8e8;">חודש / שנה</th>
+    </tr>
+    <tr>
+      <td id="eshel-pdf-id"        style="border:1px solid #000;padding:3px 4px;text-align:center;font-size:9pt;height:24px;background:#fff;"></td>
+      <td id="eshel-pdf-lastname"  style="border:1px solid #000;padding:3px 4px;text-align:center;font-size:9pt;background:#fff;"></td>
+      <td id="eshel-pdf-firstname" style="border:1px solid #000;padding:3px 4px;text-align:center;font-size:9pt;background:#fff;"></td>
+      <td id="eshel-pdf-homecity"  style="border:1px solid #000;padding:3px 4px;text-align:center;font-size:9pt;background:#fff;"></td>
+      <td id="eshel-pdf-workplace" style="border:1px solid #000;padding:3px 4px;text-align:center;font-size:9pt;background:#fff;"></td>
+      <td style="border:1px solid #000;padding:3px 4px;text-align:center;font-size:9pt;background:#fff;">
+        <span id="eshel-pdf-month"></span> / <span id="eshel-pdf-year"></span>
+      </td>
+    </tr>
+  </table>
+
+  <!-- טבלת פעולות — 20 שורות סטטיות (נמלאות ב-JS) -->
+  <table style="width:calc(100% - 64px);margin:0 32px;border-collapse:collapse;table-layout:fixed;">
+    <colgroup>
+      <col style="width:80px;">
+      <col style="width:36px;">
+      <col style="width:40px;">
+      <col style="width:40px;">
+      <col style="width:108px;">
+      <col style="width:108px;">
+      <col style="width:255px;">
+      <col style="width:48px;">
+      <col style="width:42px;">
+      <col style="width:38px;">
+      <col style="width:44px;">
+      <col style="width:38px;">
+      <col style="width:53px;">
+      <col style="width:38px;">
+    </colgroup>
+    <thead>
+      <tr style="background:#d0d0d0;">
+        <th style="border:1px solid #000;padding:3px 2px;text-align:center;font-size:7.5pt;">תאריך</th>
+        <th style="border:1px solid #000;padding:3px 1px;text-align:center;font-size:7.5pt;">יום</th>
+        <th style="border:1px solid #000;padding:3px 1px;text-align:center;font-size:7.5pt;">משעה</th>
+        <th style="border:1px solid #000;padding:3px 1px;text-align:center;font-size:7.5pt;">עד שעה</th>
+        <th style="border:1px solid #000;padding:3px 2px;text-align:center;font-size:7.5pt;">ממקום</th>
+        <th style="border:1px solid #000;padding:3px 2px;text-align:center;font-size:7.5pt;">למקום</th>
+        <th style="border:1px solid #000;padding:3px 2px;text-align:center;font-size:7.5pt;">מטרת הפעולה</th>
+        <th style="border:1px solid #000;padding:3px 1px;text-align:center;font-size:6.5pt;">בין עירוני</th>
+        <th style="border:1px solid #000;padding:3px 1px;text-align:center;font-size:7.5pt;">עירוני</th>
+        <th style="border:1px solid #000;padding:3px 1px;text-align:center;font-size:7.5pt;">בוקר</th>
+        <th style="border:1px solid #000;padding:3px 1px;text-align:center;font-size:7.5pt;">צהריים</th>
+        <th style="border:1px solid #000;padding:3px 1px;text-align:center;font-size:7.5pt;">ערב</th>
+        <th style="border:1px solid #000;padding:3px 1px;text-align:center;font-size:6.5pt;">לינה במבנה/ שטח</th>
+        <th style="border:1px solid #000;padding:3px 1px;text-align:center;font-size:7.5pt;">סה"כ</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+      <tr class="epd-row"><td class="epd-c epd-dt">&nbsp;</td><td class="epd-c epd-dy">&nbsp;</td><td class="epd-c epd-ft">&nbsp;</td><td class="epd-c epd-tt">&nbsp;</td><td class="epd-c epd-fp">&nbsp;</td><td class="epd-c epd-tp">&nbsp;</td><td class="epd-c-l epd-pu">&nbsp;</td><td class="epd-c epd-bi">&nbsp;</td><td class="epd-c epd-ir">&nbsp;</td><td class="epd-c epd-bk">&nbsp;</td><td class="epd-c epd-ts">&nbsp;</td><td class="epd-c epd-ev">&nbsp;</td><td class="epd-c epd-ln">&nbsp;</td><td class="epd-c epd-tot">&nbsp;</td></tr>
+    </tbody>
+  </table>
+
+  <!-- תחתית: הצהרה + חתימות + 3 ריבועי אישור (זה לצד זה) -->
+  <table style="width:calc(100% - 64px);margin:4px 32px 0 32px;border-collapse:collapse;">
+    <tr>
+      <!-- הצהרת עובד -->
+      <td style="border:1px solid #000;padding:5px 7px;width:32%;vertical-align:top;background:#fff;">
+        <div style="font-weight:bold;font-size:8pt;text-align:center;margin-bottom:3px;">הצהרת עובד</div>
+        <div style="font-size:7pt;line-height:1.4;">אני הח"מ מצהיר/ה בזה כי עבדתי בשעות ולנתי במקומות המפורטים לעיל וכי הפרטים הנ"ל נכונים ומדויקים. ידוע לי כי אם אמסור פרטים כוזבים אהיה צפוי/ה לאחריות פלילית.</div>
+        <div id="eshel-pdf-sig-cell" style="margin-top:8px;font-size:7.5pt;">חתימת העובד: ____________________________</div>
+        <div id="eshel-pdf-date-cell" style="margin-top:5px;font-size:7.5pt;">תאריך: _______________</div>
+      </td>
+      <!-- אישור ממונה ישיר -->
+      <td style="border:1px solid #000;padding:5px 7px;width:26%;vertical-align:top;background:#fff;">
+        <div style="font-weight:bold;font-size:8pt;text-align:center;margin-bottom:3px;">אישור ממונה ישיר</div>
+        <div style="font-size:7pt;line-height:1.4;">הריני מאשר/ת בזה כי:</div>
+        <div style="font-size:7pt;margin-top:3px;">☐ הפעולות המפורטות לעיל בוצעו בפועל ע"י העובד/ת</div>
+        <div style="font-size:7pt;margin-top:2px;">☐ ביצוע הפעולות היה הכרחי לצורך התפקיד</div>
+        <div style="margin-top:6px;font-size:7.5pt;">שם: ____________________</div>
+        <div style="margin-top:4px;font-size:7.5pt;">חתימה: _________________</div>
+        <div style="margin-top:4px;font-size:7.5pt;">תאריך: _______________</div>
+      </td>
+      <!-- אישור אמרכל היחידה -->
+      <td style="border:1px solid #000;padding:5px 7px;width:26%;vertical-align:top;background:#fff;">
+        <div style="font-weight:bold;font-size:8pt;text-align:center;margin-bottom:3px;">אישור אמרכל היחידה</div>
+        <div style="font-size:7pt;line-height:1.4;">בדקתי את הרישומים ומצאתי אותם תואמים את הדיווח.</div>
+        <div style="font-size:7pt;margin-top:3px;line-height:1.4;">לעובד/ת אושר לתשלום: _________ ₪</div>
+        <div style="margin-top:6px;font-size:7.5pt;">שם: ____________________</div>
+        <div style="margin-top:4px;font-size:7.5pt;">חתימה: _________________</div>
+        <div style="margin-top:4px;font-size:7.5pt;">תאריך: _______________</div>
+      </td>
+      <!-- אישור בוחן חשבות -->
+      <td style="border:1px solid #000;padding:5px 7px;width:16%;vertical-align:top;background:#fff;">
+        <div style="font-weight:bold;font-size:8pt;text-align:center;margin-bottom:3px;">אישור בוחן חשבות</div>
+        <div style="margin-top:8px;font-size:7.5pt;">שם: ____________________</div>
+        <div style="margin-top:4px;font-size:7.5pt;">חתימה: _________________</div>
+        <div style="margin-top:4px;font-size:7.5pt;">תאריך: _______________</div>
+      </td>
+    </tr>
+  </table>
+
+</div>
+
 <script>
   // מעבר בין דפים
   function showPage(name) {
@@ -919,6 +1329,7 @@
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById('page-' + name).classList.add('active');
     event.target.classList.add('active');
+    if (name === 'eshel') refreshEshelInfo();
   }
 
   // שמירה ב-localStorage
@@ -930,6 +1341,8 @@
       jobScope:      document.getElementById('jobScope').value,
       address:       document.getElementById('address').value,
       substituteFor: document.getElementById('substituteFor').value,
+      homeCity:      document.getElementById('homeCity').value,
+      workplace:     document.getElementById('workplace').value,
       schoolName:    document.getElementById('schoolName').value,
       district:      document.getElementById('district').value,
       shelach: [
@@ -966,6 +1379,8 @@
     jobScope:      '',
     address:       '',
     substituteFor: '',
+    homeCity:      '',
+    workplace:     '',
     schoolName:    '',
     district:      '',
     shelach:       ['', '', '', '', '', ''],
@@ -982,6 +1397,8 @@
     document.getElementById('jobScope').value      = d.jobScope      ?? '';
     document.getElementById('address').value       = d.address       ?? '';
     document.getElementById('substituteFor').value = d.substituteFor ?? '';
+    document.getElementById('homeCity').value      = d.homeCity      ?? '';
+    document.getElementById('workplace').value     = d.workplace     ?? '';
     document.getElementById('schoolName').value    = d.schoolName    ?? '';
     document.getElementById('district').value      = d.district      ?? '';
 
@@ -1432,6 +1849,287 @@
 
   // הפעלה ראשונית בטעינת הדף
   updateCalendar();
+
+  // ===== אש"ל =====
+
+  function eshelKey(month, year) {
+    return 'eshel_report_' + year + '_' + month;
+  }
+
+  // עדכון תצוגת פרטים קבועים מההגדרות
+  function refreshEshelInfo() {
+    const raw = localStorage.getItem('shelach_settings');
+    const s = raw ? JSON.parse(raw) : {};
+    document.getElementById('eshel-info-id').textContent        = s.idNumber  || '';
+    document.getElementById('eshel-info-firstname').textContent = s.firstName || '';
+    document.getElementById('eshel-info-lastname').textContent  = s.lastName  || '';
+    document.getElementById('eshel-info-homecity').textContent  = s.homeCity  || '';
+    document.getElementById('eshel-info-workplace').textContent = s.workplace || '';
+  }
+
+  function saveEshel() {
+    const month = parseInt(document.getElementById('eshelMonth').value);
+    const year  = parseInt(document.getElementById('eshelYear').value);
+    const rows  = [];
+    document.querySelectorAll('#eshelBody tr').forEach(row => {
+      rows.push({
+        date:      row.querySelector('.eshel-date').value,
+        dayname:   row.querySelector('.eshel-dayname').value,
+        fromTime:  row.querySelector('.eshel-from-time').value,
+        toTime:    row.querySelector('.eshel-to-time').value,
+        fromPlace: row.querySelector('.eshel-from-place').value,
+        toPlace:   row.querySelector('.eshel-to-place').value,
+        purpose:   row.querySelector('.eshel-purpose').value,
+        beinIri:   row.querySelector('.eshel-bein-iri').checked,
+        iri:       row.querySelector('.eshel-iri').checked,
+        boker:     row.querySelector('.eshel-boker').checked,
+        tsaharaim: row.querySelector('.eshel-tsaharaim').checked,
+        erev:      row.querySelector('.eshel-erev').checked,
+        lina:      row.querySelector('.eshel-lina').checked,
+        total:     row.querySelector('.eshel-total').value,
+      });
+    });
+    const data = {
+      rows,
+      date:      document.getElementById('eshelDate').value,
+      signature: eshelSigIsEmpty() ? '' : eshelSigCanvas.toDataURL(),
+    };
+    localStorage.setItem(eshelKey(month, year), JSON.stringify(data));
+  }
+
+  function loadEshel(month, year) {
+    // נקה הכל לפני טעינה
+    document.querySelectorAll('#eshelBody tr').forEach(row => {
+      row.querySelector('.eshel-date').value       = '';
+      row.querySelector('.eshel-dayname').value    = '';
+      row.querySelector('.eshel-from-time').value  = '';
+      row.querySelector('.eshel-to-time').value    = '';
+      row.querySelector('.eshel-from-place').value = '';
+      row.querySelector('.eshel-to-place').value   = '';
+      row.querySelector('.eshel-purpose').value    = '';
+      row.querySelector('.eshel-bein-iri').checked  = false;
+      row.querySelector('.eshel-iri').checked       = false;
+      row.querySelector('.eshel-boker').checked     = false;
+      row.querySelector('.eshel-tsaharaim').checked = false;
+      row.querySelector('.eshel-erev').checked      = false;
+      row.querySelector('.eshel-lina').checked      = false;
+      row.querySelector('.eshel-total').value       = '';
+    });
+    document.getElementById('eshelDate').value = '';
+    eshelSigCtx.clearRect(0, 0, eshelSigCanvas.width, eshelSigCanvas.height);
+
+    const raw = localStorage.getItem(eshelKey(month, year));
+    if (!raw) return;
+    const data = JSON.parse(raw);
+
+    const rows = document.querySelectorAll('#eshelBody tr');
+    (data.rows || []).forEach((rd, i) => {
+      if (i >= rows.length) return;
+      const row = rows[i];
+      row.querySelector('.eshel-date').value       = rd.date      || '';
+      row.querySelector('.eshel-dayname').value    = rd.dayname   || '';
+      row.querySelector('.eshel-from-time').value  = rd.fromTime  || '';
+      row.querySelector('.eshel-to-time').value    = rd.toTime    || '';
+      row.querySelector('.eshel-from-place').value = rd.fromPlace || '';
+      row.querySelector('.eshel-to-place').value   = rd.toPlace   || '';
+      row.querySelector('.eshel-purpose').value    = rd.purpose   || '';
+      row.querySelector('.eshel-bein-iri').checked  = rd.beinIri   || false;
+      row.querySelector('.eshel-iri').checked       = rd.iri       || false;
+      row.querySelector('.eshel-boker').checked     = rd.boker     || false;
+      row.querySelector('.eshel-tsaharaim').checked = rd.tsaharaim || false;
+      row.querySelector('.eshel-erev').checked      = rd.erev      || false;
+      row.querySelector('.eshel-lina').checked      = rd.lina      || false;
+      row.querySelector('.eshel-total').value       = rd.total     || '';
+    });
+
+    if (data.date) document.getElementById('eshelDate').value = data.date;
+    if (data.signature) {
+      const img = new Image();
+      img.onload = () => eshelSigCtx.drawImage(img, 0, 0);
+      img.src = data.signature;
+    }
+  }
+
+  function clearEshel() {
+    const month = parseInt(document.getElementById('eshelMonth').value);
+    const year  = parseInt(document.getElementById('eshelYear').value);
+    const monthName = document.getElementById('eshelMonth').selectedOptions[0].text;
+    if (!confirm('למחוק את כל נתוני האש"ל של ' + monthName + ' ' + year + '?')) return;
+    localStorage.removeItem(eshelKey(month, year));
+    loadEshel(month, year);
+  }
+
+  // מילוי אוטומטי של יום בשבוע לפי תאריך
+  function fillEshelDay(dateInput) {
+    const row = dateInput.closest('tr');
+    const dayField = row.querySelector('.eshel-dayname');
+    if (!dateInput.value) { dayField.value = ''; saveEshel(); return; }
+    const d = new Date(dateInput.value + 'T00:00:00');
+    dayField.value = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'][d.getDay()];
+    saveEshel();
+  }
+
+  // --- חתימה — אש"ל ---
+  const eshelSigCanvas = document.getElementById('eshelSigCanvas');
+  const eshelSigCtx    = eshelSigCanvas.getContext('2d');
+  let eshelIsDrawing = false, eshelLastX = 0, eshelLastY = 0;
+
+  function eshelSigPos(e) {
+    const rect = eshelSigCanvas.getBoundingClientRect();
+    const src  = e.touches ? e.touches[0] : e;
+    return {
+      x: (src.clientX - rect.left) * (eshelSigCanvas.width  / rect.width),
+      y: (src.clientY - rect.top)  * (eshelSigCanvas.height / rect.height),
+    };
+  }
+
+  function eshelSigIsEmpty() {
+    return !eshelSigCtx.getImageData(0, 0, eshelSigCanvas.width, eshelSigCanvas.height).data.some(v => v !== 0);
+  }
+
+  function clearEshelSignature() {
+    eshelSigCtx.clearRect(0, 0, eshelSigCanvas.width, eshelSigCanvas.height);
+    saveEshel();
+  }
+
+  eshelSigCanvas.addEventListener('mousedown',  e => { eshelIsDrawing = true; const p = eshelSigPos(e); eshelLastX = p.x; eshelLastY = p.y; });
+  eshelSigCanvas.addEventListener('mousemove',  e => {
+    if (!eshelIsDrawing) return;
+    const p = eshelSigPos(e);
+    eshelSigCtx.beginPath(); eshelSigCtx.moveTo(eshelLastX, eshelLastY); eshelSigCtx.lineTo(p.x, p.y);
+    eshelSigCtx.strokeStyle = '#000'; eshelSigCtx.lineWidth = 2; eshelSigCtx.lineCap = 'round';
+    eshelSigCtx.stroke();
+    eshelLastX = p.x; eshelLastY = p.y;
+  });
+  eshelSigCanvas.addEventListener('mouseup',    () => { if (eshelIsDrawing) { eshelIsDrawing = false; saveEshel(); } });
+  eshelSigCanvas.addEventListener('mouseleave', () => { if (eshelIsDrawing) { eshelIsDrawing = false; saveEshel(); } });
+
+  eshelSigCanvas.addEventListener('touchstart', e => { e.preventDefault(); eshelIsDrawing = true; const p = eshelSigPos(e); eshelLastX = p.x; eshelLastY = p.y; }, { passive: false });
+  eshelSigCanvas.addEventListener('touchmove',  e => {
+    e.preventDefault();
+    if (!eshelIsDrawing) return;
+    const p = eshelSigPos(e);
+    eshelSigCtx.beginPath(); eshelSigCtx.moveTo(eshelLastX, eshelLastY); eshelSigCtx.lineTo(p.x, p.y);
+    eshelSigCtx.strokeStyle = '#000'; eshelSigCtx.lineWidth = 2.5; eshelSigCtx.lineCap = 'round';
+    eshelSigCtx.stroke();
+    eshelLastX = p.x; eshelLastY = p.y;
+  }, { passive: false });
+  eshelSigCanvas.addEventListener('touchend', () => { if (eshelIsDrawing) { eshelIsDrawing = false; saveEshel(); } });
+
+  // שמירה אוטומטית בכל שינוי
+  document.getElementById('eshelBody').addEventListener('input', saveEshel);
+  document.getElementById('eshelBody').addEventListener('change', saveEshel);
+  document.getElementById('eshelDate').addEventListener('change', saveEshel);
+
+  // --- ייצוא PDF — אש"ל ---
+  async function printEshel() {
+    const btn = document.querySelector('#page-eshel .btn-print');
+    btn.textContent = '⏳ מכין...';
+    btn.disabled = true;
+
+    try {
+      const month = parseInt(document.getElementById('eshelMonth').value);
+      const year  = parseInt(document.getElementById('eshelYear').value);
+      const raw   = localStorage.getItem('shelach_settings');
+      const s     = raw ? JSON.parse(raw) : {};
+
+      // מילוי פרטי עובד
+      document.getElementById('eshel-pdf-id').textContent        = s.idNumber  || '';
+      document.getElementById('eshel-pdf-lastname').textContent  = s.lastName  || '';
+      document.getElementById('eshel-pdf-firstname').textContent = s.firstName || '';
+      document.getElementById('eshel-pdf-homecity').textContent  = s.homeCity  || '';
+      document.getElementById('eshel-pdf-workplace').textContent = s.workplace || '';
+      document.getElementById('eshel-pdf-month').textContent     = MONTH_NAMES[month];
+      document.getElementById('eshel-pdf-year').textContent      = year;
+
+      // מילוי שורות הטבלה הסטטיות
+      const pdfRows    = document.querySelectorAll('#eshelPdfPage .epd-row');
+      const screenRows = document.querySelectorAll('#eshelBody tr');
+      pdfRows.forEach((pdfRow, i) => {
+        const screenRow = screenRows[i];
+        let dt='', dy='', ft='', tt='', fp='', tp='', pu='', bi='', ir='', bk='', ts='', ev='', ln='', tot='';
+        if (screenRow) {
+          const dateVal = screenRow.querySelector('.eshel-date').value;
+          if (dateVal) {
+            const d = new Date(dateVal + 'T00:00:00');
+            dt = d.toLocaleDateString('he-IL');
+          }
+          dy  = screenRow.querySelector('.eshel-dayname').value;
+          ft  = screenRow.querySelector('.eshel-from-time').value;
+          tt  = screenRow.querySelector('.eshel-to-time').value;
+          fp  = screenRow.querySelector('.eshel-from-place').value;
+          tp  = screenRow.querySelector('.eshel-to-place').value;
+          pu  = screenRow.querySelector('.eshel-purpose').value;
+          bi  = screenRow.querySelector('.eshel-bein-iri').checked  ? '✓' : '';
+          ir  = screenRow.querySelector('.eshel-iri').checked        ? '✓' : '';
+          bk  = screenRow.querySelector('.eshel-boker').checked      ? '✓' : '';
+          ts  = screenRow.querySelector('.eshel-tsaharaim').checked  ? '✓' : '';
+          ev  = screenRow.querySelector('.eshel-erev').checked       ? '✓' : '';
+          ln  = screenRow.querySelector('.eshel-lina').checked       ? '✓' : '';
+          tot = screenRow.querySelector('.eshel-total').value;
+        }
+        pdfRow.querySelector('.epd-dt').textContent  = dt  || '\u00A0';
+        pdfRow.querySelector('.epd-dy').textContent  = dy  || '\u00A0';
+        pdfRow.querySelector('.epd-ft').textContent  = ft  || '\u00A0';
+        pdfRow.querySelector('.epd-tt').textContent  = tt  || '\u00A0';
+        pdfRow.querySelector('.epd-fp').textContent  = fp  || '\u00A0';
+        pdfRow.querySelector('.epd-tp').textContent  = tp  || '\u00A0';
+        pdfRow.querySelector('.epd-pu').textContent  = pu  || '\u00A0';
+        pdfRow.querySelector('.epd-bi').textContent  = bi  || '\u00A0';
+        pdfRow.querySelector('.epd-ir').textContent  = ir  || '\u00A0';
+        pdfRow.querySelector('.epd-bk').textContent  = bk  || '\u00A0';
+        pdfRow.querySelector('.epd-ts').textContent  = ts  || '\u00A0';
+        pdfRow.querySelector('.epd-ev').textContent  = ev  || '\u00A0';
+        pdfRow.querySelector('.epd-ln').textContent  = ln  || '\u00A0';
+        pdfRow.querySelector('.epd-tot').textContent = tot || '\u00A0';
+      });
+
+      // חתימה ותאריך
+      const sigDataUrl  = eshelSigIsEmpty() ? '' : eshelSigCanvas.toDataURL();
+      const rawDate     = document.getElementById('eshelDate').value;
+      const dateDisplay = rawDate
+        ? new Date(rawDate + 'T00:00:00').toLocaleDateString('he-IL')
+        : '_______________';
+
+      const sigCell  = document.getElementById('eshel-pdf-sig-cell');
+      const dateCell = document.getElementById('eshel-pdf-date-cell');
+      if (sigDataUrl) {
+        sigCell.innerHTML = 'חתימת העובד: <img src="' + sigDataUrl + '" style="height:26px;vertical-align:middle;margin-right:4px;">';
+      } else {
+        sigCell.textContent = 'חתימת העובד: ________________________________';
+      }
+      dateCell.textContent = 'תאריך: ' + dateDisplay;
+
+      // צילום עם html2canvas (הדיב הוא 1122×794px — A4 לרוחב)
+      const canvas = await html2canvas(document.getElementById('eshelPdfPage'), {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width:  1122,
+        height: 794,
+      });
+
+      // יצירת PDF לרוחב (Landscape A4 = 297×210mm)
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      pdf.addImage(imgData, 'PNG', 0, 0, 297, 210);
+      pdf.save(`אשל-${MONTH_NAMES[month]}-${year}.pdf`);
+
+    } catch(e) {
+      alert('שגיאה בייצוא PDF: ' + e.message);
+    } finally {
+      btn.textContent = 'ייצא PDF ⬇';
+      btn.disabled = false;
+    }
+  }
+
+  // הפעלה ראשונית של אש"ל
+  loadEshel(
+    parseInt(document.getElementById('eshelMonth').value),
+    parseInt(document.getElementById('eshelYear').value)
+  );
 </script>
 
 </body>
