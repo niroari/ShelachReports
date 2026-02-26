@@ -6,7 +6,7 @@
   <title>דוח של"ח</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -194,8 +194,8 @@
     }
     .btn-clear:hover { background: #c0392b; }
 
-    .btn-send {
-      background: #2980b9;
+    .btn-excel {
+      background: #1d6f42;
       color: white;
       border: none;
       padding: 9px 22px;
@@ -205,31 +205,7 @@
       font-family: inherit;
       font-weight: 600;
     }
-    .btn-send:hover { background: #2471a3; }
-
-    #sendModal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-    }
-    #sendModal.open { display: flex; }
-    .send-modal-box {
-      background: white;
-      border-radius: 16px;
-      padding: 28px;
-      width: 92%;
-      max-width: 660px;
-      max-height: 88vh;
-      overflow-y: auto;
-      direction: rtl;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.25);
-    }
-    .send-modal-box h2 { margin: 0 0 6px; font-size: 18px; }
-    .send-modal-box p  { color: #666; font-size: 13px; margin: 0 0 18px; }
+    .btn-excel:hover { background: #155232; }
 
     /* עמוד PDF — ממוקם מחוץ למסך, ייצואלי בלבד */
     #pdfPage {
@@ -932,7 +908,7 @@
         <option value="2026">2026</option>
       </select>
       <button class="btn-print" onclick="printReport()">ייצא PDF ⬇</button>
-      <button class="btn-send" onclick="openSendModal()">שלח למחוז ת"א</button>
+      <button class="btn-excel" onclick="exportReportToExcel()">ייצא אקסל ⬇</button>
       <button class="btn-clear" onclick="clearReport()">נקה נתונים</button>
     </div>
 
@@ -1060,7 +1036,7 @@
         <option value="2026">2026</option>
       </select>
       <button class="btn-print" onclick="printEshel()">ייצא PDF ⬇</button>
-      <button class="btn-send" onclick="openSendModal('eshel')">שלח למחוז ת"א</button>
+      <button class="btn-excel" onclick="exportEshelToExcel()">ייצא אקסל ⬇</button>
       <button class="btn-clear" onclick="clearEshel()">נקה נתונים</button>
     </div>
   </div>
@@ -1487,12 +1463,6 @@
   function handleSignOut() {
     auth.signOut();
   }
-
-  // --- EmailJS ---
-  const EMAILJS_SERVICE_ID  = 'service_dgrvly8';
-  const EMAILJS_TEMPLATE_ID = 'template_p5i1y18';
-  const EMAILJS_PUBLIC_KEY  = '8IUAL6cAW8wqX18fV';
-  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 
   // --- Firestore helpers ---
   async function saveToCloud(collection, docId, data) {
@@ -2337,234 +2307,72 @@
     }
   }
 
-  // --- שליחה למחוז ת"א ---
+  // --- ייצוא אקסל ---
 
-  let _sendMode = 'report'; // 'report' או 'eshel'
-
-  async function openSendModal(mode = 'report') {
-    _sendMode = mode;
-    document.getElementById('sendModal').classList.add('open');
-    document.getElementById('sendMessage').value = '';
-    document.getElementById('sendPreview').innerHTML =
-      '<span style="color:#aaa;font-size:13px;">טוען תצוגה מקדימה...</span>';
-
-    try {
-      // מכין את עמוד ה-PDF (זהה ל-printReport)
-      const month = parseInt(document.getElementById('selectMonth').value);
-      const year  = parseInt(document.getElementById('selectYear').value);
-      const raw   = localStorage.getItem('shelach_settings');
-      const s     = raw ? JSON.parse(raw) : DEFAULTS;
-
-      document.getElementById('pdf-district').textContent  = s.district   || '';
-      document.getElementById('pdf-school').textContent    = s.schoolName || '';
-      document.getElementById('pdf-month').textContent     = MONTH_NAMES[month];
-      document.getElementById('pdf-year').textContent      = year;
-      document.getElementById('pdf-id').textContent        = s.idNumber      || '';
-      document.getElementById('pdf-lastname').textContent  = s.lastName      || '';
-      document.getElementById('pdf-firstname').textContent = s.firstName     || '';
-      document.getElementById('pdf-jobscope').textContent  = s.jobScope      || '';
-      document.getElementById('pdf-address').textContent   = s.address       || '';
-      document.getElementById('pdf-substitute').textContent = s.substituteFor || '';
-      document.getElementById('pdf-workdays').textContent  = s.workDays      || '___________________________';
-      [0,1,2,3,4,5].forEach(i => {
-        document.getElementById('pdf-sh' + i).textContent = s.shelach?.[i] || '';
-        document.getElementById('pdf-sc' + i).textContent = s.school?.[i]  || '';
-      });
-
-      const sigDataUrl  = sigIsEmpty() ? '' : sigCanvas.toDataURL();
-      const rawDate     = document.getElementById('reportDate').value;
-      const dateDisplay = rawDate
-        ? new Date(rawDate + 'T00:00:00').toLocaleDateString('he-IL')
-        : '___________';
-      const pdfNotes = {
-        chet:      document.getElementById('note-chet').value,
-        tet:       document.getElementById('note-tet').value,
-        masaot:    document.getElementById('note-masaot').value,
-        mishatzim: document.getElementById('note-mishatzim').value,
-      };
-
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const tbody = document.getElementById('pdf-body');
-      tbody.innerHTML = '';
-      let totalHours = 0;
-      for (let day = 1; day <= daysInMonth; day++) {
-        const date    = new Date(year, month, day);
-        const weekday = date.getDay();
-        if (weekday === 6) continue;
-        const vacation  = getVacationLabel(date);
-        const reportRow = document.querySelector(`#reportBody tr[data-day="${day}"]`);
-        const inputs    = reportRow ? reportRow.querySelectorAll('input') : [];
-        const hours  = inputs[0]?.value || '';
-        const shanan = inputs[1]?.value || '';
-        const kita   = inputs[2]?.value || '';
-        const desc   = inputs[3]?.value || '';
-        const reason = inputs[4]?.value || '';
-        let note = RIGHT_NOTES[day] || '';
-        if (day === 2  && pdfNotes.chet)      note += '<br>' + pdfNotes.chet;
-        if (day === 7  && pdfNotes.tet)       note += '<br>' + pdfNotes.tet;
-        if (day === 16 && pdfNotes.masaot)    note += '<br>' + pdfNotes.masaot;
-        if (day === 21 && pdfNotes.mishatzim) note += '<br>' + pdfNotes.mishatzim;
-        if (shanan) totalHours += parseFloat(shanan) || 0;
-        const bg = vacation ? '#f0f0f0' : 'transparent';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="border:1px solid #000;padding:1px 2px;text-align:center;background:${bg};">${day}</td>
-          <td style="border:1px solid #000;padding:1px 2px;text-align:center;background:${bg};">${dayNames[weekday]}</td>
-          <td style="border:1px solid #000;padding:1px 2px;text-align:center;background:${bg};">${hours}</td>
-          <td style="border:1px solid #000;padding:1px 2px;text-align:center;background:${bg};">${shanan}</td>
-          <td style="border:1px solid #000;padding:1px 2px;text-align:center;background:${bg};">${kita}</td>
-          <td colspan="2" style="border:1px solid #000;padding:1px 4px;text-align:right;background:${bg};">${desc}${reason ? ' — ' + reason : ''}</td>
-          <td style="border:1px solid #000;padding:1px 4px;text-align:right;font-size:7pt;background:${bg};vertical-align:top;">${note}</td>
-        `;
-        tbody.appendChild(tr);
-      }
-      document.getElementById('pdf-total').textContent = totalHours || 0;
-      const sigCell  = document.getElementById('pdf-sig-cell');
-      const dateCell = document.getElementById('pdf-date-cell');
-      if (sigDataUrl) {
-        sigCell.innerHTML = 'חתימת המורה: <img src="' + sigDataUrl + '" style="height:28px;vertical-align:middle;margin-right:4px;">';
-      } else {
-        sigCell.textContent = 'חתימת המורה: ____________________';
-      }
-      dateCell.textContent = 'תאריך: ' + dateDisplay;
-
-      await new Promise(r => setTimeout(r, 80));
-
-      let canvas;
-      if (_sendMode === 'eshel') {
-        // הכנת עמוד PDF של האש"ל לתצוגה מקדימה
-        const em = parseInt(document.getElementById('eshelMonth').value);
-        const ey = parseInt(document.getElementById('eshelYear').value);
-        const es = JSON.parse(localStorage.getItem('shelach_settings') || '{}');
-        document.getElementById('eshel-pdf-id').textContent        = es.idNumber  || '';
-        document.getElementById('eshel-pdf-lastname').textContent  = es.lastName  || '';
-        document.getElementById('eshel-pdf-firstname').textContent = es.firstName || '';
-        document.getElementById('eshel-pdf-homecity').textContent  = es.homeCity  || '';
-        document.getElementById('eshel-pdf-workplace').textContent = es.workplace || '';
-        document.getElementById('eshel-pdf-month').textContent     = MONTH_NAMES[em];
-        document.getElementById('eshel-pdf-year').textContent      = ey;
-        const epRows = document.querySelectorAll('#eshelPdfPage .epd-row');
-        const esRows = document.querySelectorAll('#eshelBody tr');
-        epRows.forEach((pdfRow, i) => {
-          const sr = esRows[i];
-          let dt='',dy='',ft='',tt='',fp='',tp='',pu='',bi='',ir='',bk='',ts='',ev='',ln='',tot='';
-          if (sr) {
-            const dv = sr.querySelector('.eshel-date').value;
-            if (dv) dt = new Date(dv + 'T00:00:00').toLocaleDateString('he-IL');
-            dy  = sr.querySelector('.eshel-dayname').value;
-            ft  = sr.querySelector('.eshel-from-time').value;
-            tt  = sr.querySelector('.eshel-to-time').value;
-            fp  = sr.querySelector('.eshel-from-place').value;
-            tp  = sr.querySelector('.eshel-to-place').value;
-            pu  = sr.querySelector('.eshel-purpose').value;
-            bi  = sr.querySelector('.eshel-bein-iri').checked  ? '✓' : '';
-            ir  = sr.querySelector('.eshel-iri').checked        ? '✓' : '';
-            bk  = sr.querySelector('.eshel-boker').checked      ? '✓' : '';
-            ts  = sr.querySelector('.eshel-tsaharaim').checked  ? '✓' : '';
-            ev  = sr.querySelector('.eshel-erev').checked       ? '✓' : '';
-            ln  = sr.querySelector('.eshel-lina').checked       ? '✓' : '';
-            tot = sr.querySelector('.eshel-total').value;
-          }
-          pdfRow.querySelector('.epd-dt').textContent  = dt  || '\u00A0';
-          pdfRow.querySelector('.epd-dy').textContent  = dy  || '\u00A0';
-          pdfRow.querySelector('.epd-ft').textContent  = ft  || '\u00A0';
-          pdfRow.querySelector('.epd-tt').textContent  = tt  || '\u00A0';
-          pdfRow.querySelector('.epd-fp').textContent  = fp  || '\u00A0';
-          pdfRow.querySelector('.epd-tp').textContent  = tp  || '\u00A0';
-          pdfRow.querySelector('.epd-pu').textContent  = pu  || '\u00A0';
-          pdfRow.querySelector('.epd-bi').textContent  = bi  || '\u00A0';
-          pdfRow.querySelector('.epd-ir').textContent  = ir  || '\u00A0';
-          pdfRow.querySelector('.epd-bk').textContent  = bk  || '\u00A0';
-          pdfRow.querySelector('.epd-ts').textContent  = ts  || '\u00A0';
-          pdfRow.querySelector('.epd-ev').textContent  = ev  || '\u00A0';
-          pdfRow.querySelector('.epd-ln').textContent  = ln  || '\u00A0';
-          pdfRow.querySelector('.epd-tot').textContent = tot || '\u00A0';
-        });
-        const eSig  = eshelSigIsEmpty() ? '' : eshelSigCanvas.toDataURL();
-        const eDate = document.getElementById('eshelDate').value;
-        const eDateDisplay = eDate ? new Date(eDate + 'T00:00:00').toLocaleDateString('he-IL') : '_______________';
-        const eSigCell  = document.getElementById('eshel-pdf-sig-cell');
-        const eDateCell = document.getElementById('eshel-pdf-date-cell');
-        eSigCell.textContent  = eSig ? '' : 'חתימת העובד: ________________________________';
-        if (eSig) eSigCell.innerHTML = 'חתימת העובד: <img src="' + eSig + '" style="height:26px;vertical-align:middle;margin-right:4px;">';
-        eDateCell.textContent = 'תאריך: ' + eDateDisplay;
-
-        canvas = await html2canvas(document.getElementById('eshelPdfPage'), {
-          scale: 0.3, useCORS: true, logging: false, backgroundColor: '#ffffff',
-          width: 1122, height: 794,
-        });
-      } else {
-        canvas = await html2canvas(document.getElementById('pdfPage'), {
-          scale: 0.45, useCORS: true, logging: false, backgroundColor: '#ffffff',
-        });
-      }
-
-      const img = document.createElement('img');
-      img.src = canvas.toDataURL('image/png');
-      img.style.cssText = 'max-width:100%;height:auto;display:block;border-radius:4px;';
-      const preview = document.getElementById('sendPreview');
-      preview.innerHTML = '';
-      preview.appendChild(img);
-
-    } catch(e) {
-      document.getElementById('sendPreview').innerHTML =
-        '<span style="color:#c00;font-size:13px;">שגיאה בטעינת תצוגה מקדימה</span>';
-    }
-  }
-
-  function closeSendModal() {
-    document.getElementById('sendModal').classList.remove('open');
-    const btn = document.getElementById('sendSubmitBtn');
-    btn.textContent = 'שלח';
-    btn.style.background = '';
-    btn.disabled = false;
-  }
-
-  async function confirmSend() {
-    const month     = parseInt(document.getElementById(_sendMode === 'eshel' ? 'eshelMonth' : 'selectMonth').value);
-    const year      = parseInt(document.getElementById(_sendMode === 'eshel' ? 'eshelYear'  : 'selectYear').value);
-    const raw       = localStorage.getItem('shelach_settings');
-    const s         = raw ? JSON.parse(raw) : DEFAULTS;
-    const name      = [s.firstName, s.lastName].filter(Boolean).join(' ') || 'מורה';
+  function exportReportToExcel() {
+    const month = parseInt(document.getElementById('selectMonth').value);
+    const year  = parseInt(document.getElementById('selectYear').value);
     const monthName = MONTH_NAMES[month];
-    const message   = document.getElementById('sendMessage').value.trim();
 
-    const sendBtn = document.getElementById('sendSubmitBtn');
-    sendBtn.textContent = '⏳ שולח...';
-    sendBtn.disabled = true;
+    const s = {
+      firstName:  document.getElementById('firstName').value,
+      lastName:   document.getElementById('lastName').value,
+      idNumber:   document.getElementById('idNumber').value,
+      schoolName: document.getElementById('schoolName').value,
+    };
 
-    try {
-      // הורד PDF למכשיר
-      if (_sendMode === 'eshel') {
-        await printEshel();
-      } else {
-        await printReport();
-      }
+    const rows = [['יום בחודש','יום בשבוע','שעות היעדרות','ש"נ/מ"מ','כיתה','תיאור פעילות','סיבת היעדרות']];
+    document.querySelectorAll('#reportBody tr').forEach(row => {
+      if (row.style.display === 'none') return;
+      const inputs = row.querySelectorAll('input');
+      rows.push([
+        row.dataset.day,
+        row.cells[1]?.textContent || '',
+        inputs[0]?.value || '',
+        inputs[1]?.value || '',
+        inputs[2]?.value || '',
+        inputs[3]?.value || '',
+        inputs[4]?.value || '',
+      ]);
+    });
 
-      // שלח מייל דרך EmailJS
-      const docType   = _sendMode === 'eshel' ? 'טופס אש"ל' : 'דוח חודשי';
-      const bodyText = (message ? message + '\n\n' : '') +
-        `${docType} ${monthName} ${year} מצורף כקובץ PDF.\nנשלח על ידי: ${name}`;
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [8,10,14,10,10,30,20].map(w => ({ wch: w }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, monthName);
+    XLSX.writeFile(wb, `דוח-שלח-${monthName}-${year}.xlsx`);
+  }
 
-      const subjectLine = _sendMode === 'eshel'
-        ? `${name} - אש"ל ${monthName}`
-        : `${name} - דוחות ${monthName}`;
-      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-        subject:   subjectLine,
-        from_name: name,
-        message:   bodyText,
-      });
+  function exportEshelToExcel() {
+    const month = parseInt(document.getElementById('eshelMonth').value);
+    const year  = parseInt(document.getElementById('eshelYear').value);
+    const monthName = MONTH_NAMES[month];
 
-      sendBtn.textContent = '✓ נשלח!';
-      sendBtn.style.background = '#27ae60';
-      setTimeout(() => closeSendModal(), 1800);
+    const rows = [['תאריך','יום','משעה','עד שעה','ממקום','למקום','מטרת הפעולה','בין-עירוני','עירוני','בוקר','צהריים','ערב','לינה','סה"כ']];
+    document.querySelectorAll('#eshelBody tr').forEach(row => {
+      rows.push([
+        row.querySelector('.eshel-date').value,
+        row.querySelector('.eshel-dayname').value,
+        row.querySelector('.eshel-from-time').value,
+        row.querySelector('.eshel-to-time').value,
+        row.querySelector('.eshel-from-place').value,
+        row.querySelector('.eshel-to-place').value,
+        row.querySelector('.eshel-purpose').value,
+        row.querySelector('.eshel-bein-iri').checked  ? 'כן' : '',
+        row.querySelector('.eshel-iri').checked        ? 'כן' : '',
+        row.querySelector('.eshel-boker').checked      ? 'כן' : '',
+        row.querySelector('.eshel-tsaharaim').checked  ? 'כן' : '',
+        row.querySelector('.eshel-erev').checked       ? 'כן' : '',
+        row.querySelector('.eshel-lina').checked       ? 'כן' : '',
+        row.querySelector('.eshel-total').value,
+      ]);
+    });
 
-    } catch(e) {
-      alert('שגיאה בשליחה: ' + (e.text || e.message || String(e)));
-      sendBtn.textContent = 'שלח ✉';
-      sendBtn.style.background = '';
-      sendBtn.disabled = false;
-    }
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [12,8,8,8,14,14,24,10,8,8,8,8,8,8].map(w => ({ wch: w }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, monthName);
+    XLSX.writeFile(wb, `אשל-${monthName}-${year}.xlsx`);
   }
 
   // הפעלה ראשונית של אש"ל
@@ -2574,38 +2382,6 @@
   );
 </script>
 
-<!-- מודל שליחה למחוז -->
-<div id="sendModal">
-  <div class="send-modal-box">
-    <h2>✉ שלח דוח למחוז ת"א</h2>
-    <p>ה-PDF יורד למכשיר שלך — יש לצרף אותו ידנית למייל שייפתח.</p>
-
-    <div style="margin-bottom:16px;">
-      <div style="font-weight:600;font-size:13px;color:#444;margin-bottom:8px;">תצוגה מקדימה:</div>
-      <div id="sendPreview" style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;background:#f5f5f5;min-height:100px;display:flex;align-items:center;justify-content:center;">
-        <span style="color:#aaa;font-size:13px;">טוען...</span>
-      </div>
-    </div>
-
-    <div style="margin-bottom:22px;">
-      <div style="font-weight:600;font-size:13px;color:#444;margin-bottom:8px;">הודעה (אופציונלי):</div>
-      <textarea id="sendMessage" rows="3"
-        placeholder="כתוב הודעה שתופיע בגוף המייל..."
-        style="width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:8px;padding:10px;font-family:inherit;font-size:14px;resize:vertical;direction:rtl;"></textarea>
-    </div>
-
-    <div style="display:flex;gap:10px;">
-      <button id="sendSubmitBtn" onclick="confirmSend()"
-        style="background:#2980b9;color:white;border:none;border-radius:8px;padding:11px 26px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">
-        שלח
-      </button>
-      <button onclick="closeSendModal()"
-        style="background:#eee;border:none;border-radius:8px;padding:11px 20px;font-size:14px;cursor:pointer;font-family:inherit;">
-        ביטול
-      </button>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
