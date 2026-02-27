@@ -1010,6 +1010,7 @@
     box-shadow: 0 1px 6px rgba(0,0,0,0.12);
   }
   .mode-btn:hover:not(.active) { color: #333; }
+  .mode-label { font-size: 13px; color: #888; margin: 0 0 6px 0; }
   .btn-clear-mobile {
     background: transparent;
     border: none;
@@ -1469,6 +1470,7 @@
     </div>
 
     <!-- בחירת מצב הזנה -->
+    <p class="mode-label">בחר מצב מילוי הדוח</p>
     <div class="mode-toggle">
       <button class="mode-btn active" onclick="switchMode('table')">☰ טבלה</button>
       <button class="mode-btn" onclick="switchMode('calendar')">📅 לוח שנה</button>
@@ -1626,6 +1628,7 @@
   </div>
 
   <!-- בחירת מצב הזנה — אש"ל -->
+  <p class="mode-label">בחר מצב מילוי הדוח</p>
   <div class="mode-toggle">
     <button class="mode-btn active" onclick="switchEshelMode('table')">☰ טבלה</button>
     <button class="mode-btn" onclick="switchEshelMode('wizard')">◀▶ יומי</button>
