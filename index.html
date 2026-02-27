@@ -754,7 +754,6 @@
     }
 
     .top-export-btns { display: none; }
-    .btn-clear-mobile { display: block; }
     .mode-toggle { width: 100%; justify-content: space-between; }
     .month-selector { flex-wrap: wrap; }
     .btn-print, .btn-excel, .btn-sign, .btn-clear {
@@ -1012,7 +1011,6 @@
   }
   .mode-btn:hover:not(.active) { color: #333; }
   .btn-clear-mobile {
-    display: none;
     background: transparent;
     border: none;
     border-radius: 7px;
@@ -1026,6 +1024,7 @@
     white-space: nowrap;
   }
   .btn-clear-mobile:hover { color: #c0392b; }
+  @media (min-width: 601px) { .btn-clear-mobile { display: none; } }
 
   /* ===== Calendar View ===== */
   .cal-multiselect-bar {
