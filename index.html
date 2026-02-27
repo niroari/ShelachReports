@@ -754,6 +754,8 @@
     }
 
     .top-export-btns { display: none; }
+    .btn-clear-mobile { display: block; }
+    .mode-toggle { width: 100%; justify-content: space-between; }
     .month-selector { flex-wrap: wrap; }
     .btn-print, .btn-excel, .btn-sign, .btn-clear {
       width: 100%;
@@ -1009,6 +1011,21 @@
     box-shadow: 0 1px 6px rgba(0,0,0,0.12);
   }
   .mode-btn:hover:not(.active) { color: #333; }
+  .btn-clear-mobile {
+    display: none;
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    color: #e74c3c;
+    margin-right: auto;
+    white-space: nowrap;
+  }
+  .btn-clear-mobile:hover { color: #c0392b; }
 
   /* ===== Calendar View ===== */
   .cal-multiselect-bar {
@@ -1456,6 +1473,7 @@
     <div class="mode-toggle">
       <button class="mode-btn active" onclick="switchMode('table')">☰ טבלה</button>
       <button class="mode-btn" onclick="switchMode('calendar')">📅 לוח שנה</button>
+      <button class="btn-clear-mobile" onclick="clearReport()">נקה נתונים</button>
     </div>
 
     <!-- מצב טבלה (קיים) -->
@@ -1612,6 +1630,7 @@
   <div class="mode-toggle">
     <button class="mode-btn active" onclick="switchEshelMode('table')">☰ טבלה</button>
     <button class="mode-btn" onclick="switchEshelMode('wizard')">◀▶ יומי</button>
+    <button class="btn-clear-mobile" onclick="clearEshel()">נקה נתונים</button>
   </div>
 
   <!-- פרטים קבועים (מהגדרות) -->
