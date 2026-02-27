@@ -1171,7 +1171,25 @@
   }
   #googleSignInBtn:hover { background: #f0f0f0; }
   #googleSignInBtn svg { width: 22px; height: 22px; flex-shrink: 0; }
-  #loginError { color: #e74c3c; font-size: 13px; margin-top: 18px; display: none; }
+  #loginError { color: #e74c3c; font-size: 13px; margin-top: 18px; display: none; text-align: center; }
+
+  .login-tabs { display:flex; gap:0; margin-bottom:24px; border-radius:8px; overflow:hidden; width:280px; }
+  .login-tab { flex:1; padding:10px; background:#222; color:#888; border:none;
+    cursor:pointer; font-family:inherit; font-size:14px; }
+  .login-tab.active { background:#2ecc71; color:#fff; font-weight:600; }
+
+  #emailLoginForm, #emailRegisterForm {
+    display:flex; flex-direction:column; gap:12px; width:280px; }
+  #emailLoginForm input, #emailRegisterForm input {
+    padding:11px 14px; border-radius:8px; border:1.5px solid #333;
+    font-size:15px; font-family:inherit; background:#1a1a1a; color:#fff; }
+  #emailLoginForm input:focus, #emailRegisterForm input:focus {
+    outline:none; border-color:#2ecc71; }
+  .btn-email-action { background:#2ecc71; color:#fff; border:none; border-radius:8px;
+    padding:12px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .btn-email-secondary { background:transparent; color:#888; border:none;
+    font-size:13px; cursor:pointer; font-family:inherit; margin-top:2px; }
+  .btn-email-secondary:hover { color:#fff; }
 
   /* ===== User info in header ===== */
   header { display: flex; align-items: center; justify-content: space-between; position: relative; }
@@ -1228,17 +1246,45 @@
     <img src="https://www.moked-shelach.co.il/tiyulim/Images/shelach.gif" alt='לוגו של"ח' style="height:80px;display:block;">
   </div>
   <h1>מילוי דוחות פעילות - מורים ומורות לשל"ח</h1>
-  <p>יש להתחבר עם חשבון Google כדי להמשיך</p>
-  <button id="googleSignInBtn" onclick="handleSignIn()">
-    <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-    </svg>
-    התחבר עם Google
-  </button>
-  <div id="loginError">ההתחברות נכשלה. נסה שוב.</div>
+  <p>בחר דרך כניסה</p>
+
+  <!-- Tab switcher -->
+  <div class="login-tabs">
+    <button class="login-tab active" onclick="switchLoginTab('google')">Google</button>
+    <button class="login-tab" onclick="switchLoginTab('email')">אימייל וסיסמה</button>
+  </div>
+
+  <!-- Google tab -->
+  <div id="googleTab">
+    <button id="googleSignInBtn" onclick="handleSignIn()">
+      <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      התחבר עם Google
+    </button>
+  </div>
+
+  <!-- Email tab (hidden by default) -->
+  <div id="emailTab" style="display:none;">
+    <div id="emailLoginForm">
+      <input id="loginEmail" type="email" placeholder="אימייל" dir="ltr">
+      <input id="loginPassword" type="password" placeholder="סיסמה" dir="ltr">
+      <button class="btn-email-action" onclick="handleEmailSignIn()">כניסה</button>
+      <button class="btn-email-secondary" onclick="switchToRegister()">אין לך חשבון? צור חשבון חדש</button>
+    </div>
+    <div id="emailRegisterForm" style="display:none;">
+      <input id="regEmail" type="email" placeholder="אימייל" dir="ltr">
+      <input id="regPassword" type="password" placeholder="סיסמה (לפחות 6 תווים)" dir="ltr">
+      <input id="regPassword2" type="password" placeholder="אימות סיסמה" dir="ltr">
+      <button class="btn-email-action" onclick="handleRegister()">צור חשבון</button>
+      <button class="btn-email-secondary" onclick="switchToLogin()">יש לך כבר חשבון? כניסה</button>
+    </div>
+  </div>
+
+  <div id="loginError"></div>
 </div>
 
 <header>
@@ -2008,7 +2054,7 @@
     if (user) {
       document.getElementById('loginOverlay').style.display = 'none';
       document.getElementById('userInfo').style.display = 'flex';
-      document.getElementById('userName').textContent = user.displayName || '';
+      document.getElementById('userName').textContent = user.displayName || user.email || '';
       const avatar = document.getElementById('userAvatar');
       if (user.photoURL) {
         avatar.src = user.photoURL;
@@ -2039,6 +2085,64 @@
 
   function handleSignOut() {
     auth.signOut();
+  }
+
+  // --- Email/Password Auth ---
+  function switchLoginTab(tab) {
+    document.getElementById('googleTab').style.display = tab === 'google' ? 'block' : 'none';
+    document.getElementById('emailTab').style.display   = tab === 'email'  ? 'block' : 'none';
+    document.querySelectorAll('.login-tab').forEach(function(b, i) {
+      b.classList.toggle('active', (tab === 'google') === (i === 0));
+    });
+    document.getElementById('loginError').style.display = 'none';
+  }
+
+  function switchToRegister() {
+    document.getElementById('emailLoginForm').style.display    = 'none';
+    document.getElementById('emailRegisterForm').style.display = 'flex';
+    document.getElementById('loginError').style.display = 'none';
+  }
+
+  function switchToLogin() {
+    document.getElementById('emailRegisterForm').style.display = 'none';
+    document.getElementById('emailLoginForm').style.display    = 'flex';
+    document.getElementById('loginError').style.display = 'none';
+  }
+
+  function handleEmailSignIn() {
+    var email = document.getElementById('loginEmail').value.trim();
+    var pass  = document.getElementById('loginPassword').value;
+    document.getElementById('loginError').style.display = 'none';
+    auth.signInWithEmailAndPassword(email, pass).catch(function(err) {
+      showAuthError(err.code);
+    });
+  }
+
+  function handleRegister() {
+    var email = document.getElementById('regEmail').value.trim();
+    var pass1 = document.getElementById('regPassword').value;
+    var pass2 = document.getElementById('regPassword2').value;
+    document.getElementById('loginError').style.display = 'none';
+    if (pass1 !== pass2) { showAuthError('passwords-mismatch'); return; }
+    auth.createUserWithEmailAndPassword(email, pass1).catch(function(err) {
+      showAuthError(err.code);
+    });
+  }
+
+  function showAuthError(code) {
+    var msgs = {
+      'passwords-mismatch':        'הסיסמאות אינן תואמות',
+      'auth/invalid-email':        'כתובת אימייל לא תקינה',
+      'auth/user-not-found':       'לא נמצא משתמש עם אימייל זה',
+      'auth/wrong-password':       'סיסמה שגויה',
+      'auth/invalid-credential':   'אימייל או סיסמה שגויים',
+      'auth/email-already-in-use': 'אימייל זה כבר רשום במערכת',
+      'auth/weak-password':        'הסיסמה חלשה מדי — לפחות 6 תווים',
+      'auth/too-many-requests':    'יותר מדי ניסיונות. נסה שוב מאוחר יותר',
+    };
+    var errDiv = document.getElementById('loginError');
+    errDiv.textContent = msgs[code] || 'שגיאה בהתחברות. נסה שוב.';
+    errDiv.style.display = 'block';
   }
 
   // --- Firestore helpers ---
