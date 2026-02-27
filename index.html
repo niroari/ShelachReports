@@ -3060,6 +3060,35 @@
         principalCell.textContent = 'חתימת המנהל: ___________________________';
       }
 
+      // ===== בדיקות לפני ייצוא =====
+      const _warnings = [];
+
+      // 1. ימים עם נתונים אך ללא תיאור פעולה
+      const _missingDesc = [];
+      document.querySelectorAll('#reportBody tr[data-day]').forEach(function(row) {
+        const inputs = row.querySelectorAll('input');
+        const shanan = inputs[1]?.value?.trim() || '';
+        const kita   = inputs[2]?.value?.trim() || '';
+        const desc   = inputs[3]?.value?.trim() || '';
+        if ((shanan || kita) && !desc) _missingDesc.push(row.getAttribute('data-day'));
+      });
+      if (_missingDesc.length) _warnings.push('חסר תיאור פעולה בימים: ' + _missingDesc.join(', '));
+
+      // 2. חתימת המורה
+      if (sigIsEmpty()) _warnings.push('חסרה חתימת המורה');
+
+      // 3. חתימת המנהל/ת
+      if (!_principalSigData) _warnings.push('חסרה חתימת המנהל/ת');
+
+      if (_warnings.length) {
+        const _go = confirm('שים לב לפני הייצוא:\n\n' + _warnings.map(function(w) { return '• ' + w; }).join('\n') + '\n\nהאם להמשיך בכל זאת?');
+        if (!_go) {
+          btn.textContent = 'ייצא PDF ⬇';
+          btn.disabled = false;
+          return;
+        }
+      }
+
       // צילום עם html2canvas
       const canvas = await html2canvas(document.getElementById('pdfPage'), {
         scale: 2,
