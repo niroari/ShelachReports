@@ -522,6 +522,7 @@
       align-items: center;
       margin-bottom: 24px;
     }
+    .top-export-btns { display: contents; }
 
     .month-selector select {
       border: 1.5px solid #e0e0e0;
@@ -752,6 +753,7 @@
       font-size: 16px;
     }
 
+    .top-export-btns { display: none; }
     .month-selector { flex-wrap: wrap; }
     .btn-print, .btn-excel, .btn-sign, .btn-clear {
       width: 100%;
@@ -1442,10 +1444,12 @@
         <option value="2025">2025</option>
         <option value="2026">2026</option>
       </select>
-      <button class="btn-print" onclick="printReport()">ייצא PDF ⬇</button>
-      <button class="btn-excel" onclick="exportReportToExcel()">ייצא אקסל ⬇</button>
-      <button class="btn-sign" onclick="createSignatureRequest()">שלח לחתימת מנהל/ת ✍</button>
-      <button class="btn-clear" onclick="clearReport()">נקה נתונים</button>
+      <div class="top-export-btns">
+        <button class="btn-print" onclick="printReport()">ייצא PDF ⬇</button>
+        <button class="btn-excel" onclick="exportReportToExcel()">ייצא אקסל ⬇</button>
+        <button class="btn-sign" onclick="createSignatureRequest()">שלח לחתימת מנהל/ת ✍</button>
+        <button class="btn-clear" onclick="clearReport()">נקה נתונים</button>
+      </div>
     </div>
 
     <!-- בחירת מצב הזנה -->
@@ -1596,9 +1600,11 @@
         <option value="2025">2025</option>
         <option value="2026">2026</option>
       </select>
-      <button class="btn-print" onclick="printEshel()">ייצא PDF ⬇</button>
-      <button class="btn-excel" onclick="exportEshelToExcel()">ייצא אקסל ⬇</button>
-      <button class="btn-clear" onclick="clearEshel()">נקה נתונים</button>
+      <div class="top-export-btns">
+        <button class="btn-print" onclick="printEshel()">ייצא PDF ⬇</button>
+        <button class="btn-excel" onclick="exportEshelToExcel()">ייצא אקסל ⬇</button>
+        <button class="btn-clear" onclick="clearEshel()">נקה נתונים</button>
+      </div>
     </div>
   </div>
 
