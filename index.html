@@ -3384,6 +3384,16 @@
       }
       dateCell.textContent = 'תאריך: ' + dateDisplay;
 
+      // ===== בדיקות לפני ייצוא =====
+      if (eshelSigIsEmpty()) {
+        const _go = confirm('שים לב לפני הייצוא:\n\n• חסרה חתימת המורה\n\nהאם להמשיך בכל זאת?');
+        if (!_go) {
+          btn.textContent = 'ייצא PDF ⬇';
+          btn.disabled = false;
+          return;
+        }
+      }
+
       // צילום עם html2canvas (הדיב הוא 1122×794px — A4 לרוחב)
       const canvas = await html2canvas(document.getElementById('eshelPdfPage'), {
         scale: 2,
