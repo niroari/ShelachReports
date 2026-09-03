@@ -496,6 +496,17 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                 {name}
               </div>
             ))}
+            {/* Leading empty slots to align Day 1 with its exact day of the week */}
+            {(() => {
+              const firstDayWeekday = new Date(year, month, 1).getDay();
+              const emptyStartSlots = firstDayWeekday === 6 ? 0 : firstDayWeekday;
+              return Array.from({ length: emptyStartSlots }).map((_, i) => (
+                <div
+                  key={`empty-start-${i}`}
+                  className="min-h-[72px] md:min-h-[85px] rounded-xl border border-dashed border-neutral-200/50 bg-neutral-50/30"
+                />
+              ));
+            })()}
             {Array.from({ length: daysInMonth }, (_, idx) => {
               const day = idx + 1;
               const date = new Date(year, month, day);
@@ -555,6 +566,18 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                 </button>
               );
             })}
+            {/* Trailing empty slots to complete the final week grid */}
+            {(() => {
+              const lastDayWeekday = new Date(year, month, daysInMonth).getDay();
+              const emptyEndSlots = lastDayWeekday === 6 ? 0 : 5 - lastDayWeekday;
+              if (emptyEndSlots <= 0) return null;
+              return Array.from({ length: emptyEndSlots }).map((_, i) => (
+                <div
+                  key={`empty-end-${i}`}
+                  className="min-h-[72px] md:min-h-[85px] rounded-xl border border-dashed border-neutral-200/50 bg-neutral-50/30"
+                />
+              ));
+            })()}
           </div>
         </div>
       )}
