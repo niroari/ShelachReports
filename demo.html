@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>דוח של"ח — Demo</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f0f2f5;
+      color: #222;
+      direction: rtl;
+    }
+
+    header {
+      background: #000000;
+      color: white;
+      padding: 18px 36px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .tabs {
+      display: flex;
+      background: #111111;
+      padding: 0 36px;
+    }
+
+    .tab {
+      padding: 14px 28px;
+      color: #888;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      color: #ffffff;
+      border-bottom-color: #2ecc71;
+    }
+
+    .page { display: none; padding: 36px; }
+    .page.active { display: block; }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 720px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+      border: 1px solid #e8e8e8;
+    }
+
+    .card h2 {
+      font-size: 18px;
+      color: #111111;
+      border-bottom: 2px solid #2ecc71;
+      padding-bottom: 12px;
+      margin-bottom: 28px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 12px;
+      color: #666;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input {
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 15px;
+      font-family: inherit;
+      direction: rtl;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #2ecc71;
+      box-shadow: 0 0 0 3px rgba(46,204,113,0.15);
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #2ecc71;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 24px 0 14px;
+      grid-column: 1 / -1;
+    }
+
+    .hours-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      grid-column: 1 / -1;
+    }
+
+    .hours-grid .day-label {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .hours-grid input {
+      text-align: center;
+      padding: 8px 4px;
+    }
+
+    .btn-save {
+      margin-top: 24px;
+      background: #111111;
+      color: white;
+      border: none;
+      padding: 12px 36px;
+      font-size: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .btn-save:hover { background: #2ecc71; color: #111; }
+
+    .save-msg {
+      display: inline-block;
+      margin-right: 12px;
+      color: #2ecc71;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .save-msg.show { opacity: 1; }
+
+    .btn-print {
+      margin-right: auto;
+      background: #2ecc71;
+      color: #111111;
+      border: none;
+      padding: 9px 22px;
+      font-size: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+    }
+    .btn-print:hover { background: #27ae60; }
+
+    .btn-clear {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 9px 22px;
+      font-size: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+    }
+    .btn-clear:hover { background: #c0392b; }
+
+    /* עמוד PDF — ממוקם מחוץ למסך, ייצואלי בלבד */
+    #pdfPage {
+      position: fixed;
+      left: -9999px;
+      top: 0;
+      width: 794px;
+      min-height: 1123px;
+      background: white;
+      font-family: 'Times New Roman', Times, serif;
+      direction: rtl;
+      padding: 20px 23px 20px 78px;
+      box-sizing: border-box;
+      color: #000;
+      font-size: 8.5pt;
+    }
+
+    .pdf-tbl {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 3px;
+    }
+
+    .pdf-tbl th, .pdf-tbl td {
+      border: 1px solid #000;
+      padding: 2px 3px;
+      font-size: 8.5pt;
+    }
+
+    /* טבלה חודשית */
+    .report-card {
+      padding: 28px 36px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+      border: 1px solid #e8e8e8;
+    }
+
+    .month-selector {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .month-selector select {
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 15px;
+      font-family: inherit;
+      direction: rtl;
+    }
+
+    .report-table-wrap {
+      overflow-x: auto;
+    }
+
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .report-table th {
+      background: #111111;
+      color: white;
+      padding: 11px 8px;
+      text-align: center;
+      font-weight: 600;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    .report-table td {
+      border: 1px solid #ececec;
+      padding: 3px 4px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .report-table tbody tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    .report-table tbody tr:hover {
+      background: #f0fff4;
+    }
+
+    .report-table tfoot td {
+      background: #111111;
+      color: white;
+      font-weight: bold;
+      padding: 10px 8px;
+      border-top: none;
+    }
+
+    .report-table input[type="text"] {
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: center;
+      font-size: 14px;
+      font-family: inherit;
+      padding: 4px 2px;
+      direction: rtl;
+    }
+
+    .report-table input[type="number"] {
+      border: none;
+      background: transparent;
+      width: 48px;
+      text-align: center;
+      font-size: 14px;
+      font-family: inherit;
+      padding: 4px 2px;
+    }
+
+    .report-table input:focus {
+      outline: 2px solid #2ecc71;
+      border-radius: 3px;
+      background: #f0fff4;
+    }
+
+    /* שורת שבת — מוסתרת */
+    .row-shabbat { display: none; }
+
+    /* קו עבה מתחת לשישי — הפרדת שבועות */
+    .row-week-end td { border-bottom: 2px solid #ccc !important; }
+
+    /* שורת חג */
+    .row-vacation {
+      background: #f8f8f8 !important;
+      color: #aaa;
+    }
+
+    .row-vacation input {
+      background: transparent !important;
+      color: #aaa;
+      font-style: italic;
+    }
+
+    /* עמודות צרות — ימים, היעדרות, ש"נ, כיתה */
+    .report-table th:nth-child(1), .report-table td:nth-child(1),
+    .report-table th:nth-child(2), .report-table td:nth-child(2),
+    .report-table th:nth-child(3), .report-table td:nth-child(3),
+    .report-table th:nth-child(4), .report-table td:nth-child(4),
+    .report-table th:nth-child(5), .report-table td:nth-child(5) {
+      width: 52px;
+      min-width: 52px;
+    }
+
+    /* עמודת תיאור רחבה יותר */
+    .report-table th:nth-child(6),
+    .report-table td:nth-child(6) {
+      width: 220px;
+    }
+
+    .report-table th:nth-child(7),
+    .report-table td:nth-child(7) {
+      width: 180px;
+    }
+
+    /* חלק נושאים */
+    .notes-section {
+      background: white;
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-top: 24px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+      border: 1px solid #e8e8e8;
+    }
+
+    .notes-section h3 {
+      font-size: 16px;
+      color: #111;
+      margin-bottom: 18px;
+      border-bottom: 2px solid #2ecc71;
+      padding-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .notes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .notes-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .notes-item label {
+      font-size: 12px;
+      color: #666;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .notes-item textarea {
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      direction: rtl;
+      resize: vertical;
+      min-height: 80px;
+      line-height: 1.5;
+    }
+
+    .notes-item textarea:focus {
+      outline: none;
+      border-color: #2ecc71;
+      box-shadow: 0 0 0 3px rgba(46,204,113,0.15);
+    }
+
+  /* ===== מובייל ===== */
+  @media (max-width: 600px) {
+
+    header {
+      padding: 12px 16px;
+      font-size: 16px;
+    }
+
+    .tabs { padding: 0; }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 11px 6px;
+      font-size: 13px;
+    }
+
+    .page { padding: 14px; }
+    .card { padding: 18px; }
+    .report-card { padding: 14px; }
+
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.full { grid-column: 1; }
+
+    .hours-grid { gap: 4px; }
+
+    input, textarea, select { font-size: 16px !important; }
+
+    .btn-save {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+    }
+
+    .month-selector { flex-wrap: wrap; }
+    .btn-print {
+      width: 100%;
+      margin-right: 0;
+      padding: 12px;
+      font-size: 16px;
+    }
+
+    .report-table th {
+      padding: 8px 3px;
+      font-size: 11px;
+    }
+
+    .report-table th:nth-child(1), .report-table td:nth-child(1),
+    .report-table th:nth-child(2), .report-table td:nth-child(2),
+    .report-table th:nth-child(3), .report-table td:nth-child(3),
+    .report-table th:nth-child(4), .report-table td:nth-child(4),
+    .report-table th:nth-child(5), .report-table td:nth-child(5) {
+      width: 40px;
+      min-width: 40px;
+    }
+
+    .report-table input {
+      min-height: 40px;
+      padding: 4px 2px;
+    }
+
+    .notes-grid { grid-template-columns: 1fr; }
+    .notes-item textarea { min-height: 90px; }
+
+    .notes-section { padding: 14px; }
+
+    .sig-row { flex-direction: column; }
+    .sig-date { flex: none; width: 100%; }
+  }
+
+  /* חתימה ותאריך */
+  .sig-row {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .sig-date {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 0 0 180px;
+  }
+  .sig-date input[type="date"] {
+    padding: 9px 12px;
+    font-size: 15px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-family: inherit;
+  }
+  .sig-canvas-wrap {
+    flex: 1;
+    min-width: 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  #signatureCanvas {
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    cursor: crosshair;
+    touch-action: none;
+    display: block;
+    width: 100%;
+    height: 110px;
+  }
+  .btn-clear-sig {
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    background: #f8f8f8;
+    color: #666;
+    padding: 6px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    align-self: flex-start;
+    font-family: inherit;
+  }
+  .btn-clear-sig:hover { background: #eee; }
+  </style>
+</head>
+<body>
+
+<header>דוח פעילות ונוכחות — מורה של"ח</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showPage('settings')">פרטים אישיים</div>
+  <div class="tab" onclick="showPage('report')">דוח חודשי</div>
+</div>
+
+<!-- דף הגדרות -->
+<div class="page active" id="page-settings">
+  <div class="card">
+    <h2>פרטים קבועים</h2>
+
+    <div class="form-grid">
+
+      <div class="form-group full section-title">פרטי מורה</div>
+
+      <div class="form-group">
+        <label>שם פרטי</label>
+        <input type="text" id="firstName" placeholder="שם פרטי">
+      </div>
+
+      <div class="form-group">
+        <label>שם משפחה</label>
+        <input type="text" id="lastName" placeholder="שם משפחה">
+      </div>
+
+      <div class="form-group">
+        <label>מספר זהות</label>
+        <input type="text" id="idNumber" placeholder="מספר זהות">
+      </div>
+
+      <div class="form-group">
+        <label>היקף משרה</label>
+        <input type="text" id="jobScope" placeholder="(אופציונלי)">
+      </div>
+
+      <div class="form-group">
+        <label>כתובת פרטית</label>
+        <input type="text" id="address" placeholder="כתובת מגורים">
+      </div>
+
+      <div class="form-group">
+        <label>במקום מדריך</label>
+        <input type="text" id="substituteFor" placeholder="(אופציונלי)">
+      </div>
+
+      <div class="form-group full section-title">בית הספר</div>
+
+      <div class="form-group">
+        <label>שם בית הספר</label>
+        <input type="text" id="schoolName" placeholder="שם בית הספר">
+      </div>
+
+      <div class="form-group">
+        <label>מחוז</label>
+        <input type="text" id="district" placeholder="מחוז">
+      </div>
+
+      <div class="form-group full section-title">שעות עבודה שבועיות — מסל של"ח</div>
+
+      <div class="hours-grid">
+        <div class="day-label">א'</div>
+        <div class="day-label">ב'</div>
+        <div class="day-label">ג'</div>
+        <div class="day-label">ד'</div>
+        <div class="day-label">ה'</div>
+        <div class="day-label">ו'</div>
+        <input type="number" id="shelach_sun" min="0" max="12" placeholder="0">
+        <input type="number" id="shelach_mon" min="0" max="12" placeholder="0">
+        <input type="number" id="shelach_tue" min="0" max="12" placeholder="0">
+        <input type="number" id="shelach_wed" min="0" max="12" placeholder="0">
+        <input type="number" id="shelach_thu" min="0" max="12" placeholder="0">
+        <input type="number" id="shelach_fri" min="0" max="12" placeholder="0">
+      </div>
+
+      <div class="form-group full section-title">שעות עבודה שבועיות — מסל בי"ס</div>
+
+      <div class="hours-grid">
+        <div class="day-label">א'</div>
+        <div class="day-label">ב'</div>
+        <div class="day-label">ג'</div>
+        <div class="day-label">ד'</div>
+        <div class="day-label">ה'</div>
+        <div class="day-label">ו'</div>
+        <input type="number" id="school_sun" min="0" max="12" placeholder="0">
+        <input type="number" id="school_mon" min="0" max="12" placeholder="0">
+        <input type="number" id="school_tue" min="0" max="12" placeholder="0">
+        <input type="number" id="school_wed" min="0" max="12" placeholder="0">
+        <input type="number" id="school_thu" min="0" max="12" placeholder="0">
+        <input type="number" id="school_fri" min="0" max="12" placeholder="0">
+      </div>
+
+      <div class="form-group full section-title">פרטים נוספים לטופס</div>
+
+      <div class="form-group full">
+        <label>השעות השבועיות ניתנות בימים</label>
+        <input type="text" id="workDays" placeholder="למשל: א׳, ב׳, ד׳">
+      </div>
+
+    </div>
+
+    <div style="margin-top: 24px;">
+      <button class="btn-save" onclick="saveSettings()">שמור פרטים</button>
+      <span class="save-msg" id="saveMsg">✓ נשמר בהצלחה!</span>
+    </div>
+  </div>
+</div>
+
+<!-- דף דוח חודשי -->
+<div class="page" id="page-report">
+  <div class="report-card">
+
+    <div class="month-selector">
+      <label>חודש:</label>
+      <select id="selectMonth" onchange="updateCalendar()">
+
+        <option value="8">ספטמבר</option>
+        <option value="9">אוקטובר</option>
+        <option value="10">נובמבר</option>
+        <option value="11">דצמבר</option>
+        <option value="0">ינואר</option>
+        <option value="1">פברואר</option>
+        <option value="2">מרץ</option>
+        <option value="3">אפריל</option>
+        <option value="4">מאי</option>
+        <option value="5">יוני</option>
+      </select>
+      <label>שנה:</label>
+      <select id="selectYear" onchange="updateCalendar()">
+        <option value="2024">2024</option>
+        <option value="2025">2025</option>
+        <option value="2026">2026</option>
+        <option value="2027">2027</option>
+        <option value="2028">2028</option>
+        <option value="2029">2029</option>
+        <option value="2030">2030</option>
+        <option value="2031">2031</option>
+        <option value="2032">2032</option>
+        <option value="2033">2033</option>
+        <option value="2034">2034</option>
+        <option value="2035">2035</option>
+      </select>
+      <button class="btn-print" onclick="printReport()">ייצא PDF ⬇</button>
+      <button class="btn-clear" onclick="clearReport()">נקה נתונים</button>
+    </div>
+
+    <div class="report-table-wrap">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>היום<br>בחודש</th>
+            <th>היום<br>בשבוע</th>
+            <th>שעות<br>היעדרות</th>
+            <th>ש"נ/<br>מ"מ</th>
+            <th>הכיתה</th>
+            <th>תיאור הפעולה</th>
+            <th>סיבה להיעדרות<br>או שעות נוספות</th>
+          </tr>
+        </thead>
+        <tbody id="reportBody">
+          <tr data-day="1"><td>1</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="2"><td>2</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="3"><td>3</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="4"><td>4</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="5"><td>5</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="6"><td>6</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="7"><td>7</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="8"><td>8</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="9"><td>9</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="10"><td>10</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="11"><td>11</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="12"><td>12</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="13"><td>13</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="14"><td>14</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="15"><td>15</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="16"><td>16</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="17"><td>17</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="18"><td>18</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="19"><td>19</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="20"><td>20</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="21"><td>21</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="22"><td>22</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="23"><td>23</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="24"><td>24</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="25"><td>25</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="26"><td>26</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="27"><td>27</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="28"><td>28</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="29"><td>29</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="30"><td>30</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr data-day="31"><td>31</td><td class="weekday"></td><td><input type="number" min="0"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" style="font-weight:bold;">סה"כ שעות:</td>
+            <td id="totalHours">0</td>
+            <td colspan="4"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- חלק הערות: נושאים, דרכי ביצוע -->
+  <div class="notes-section">
+    <h3>פרט נושאים, דרכי ביצוע ודרכי פעולה</h3>
+    <div class="notes-grid">
+      <div class="notes-item">
+        <label for="note-chet">שכבת כיתות ח</label>
+        <textarea id="note-chet" placeholder="הכנס תוכן..."></textarea>
+      </div>
+      <div class="notes-item">
+        <label for="note-tet">שכבת כיתות ט</label>
+        <textarea id="note-tet" placeholder="הכנס תוכן..."></textarea>
+      </div>
+      <div class="notes-item">
+        <label for="note-masaot">מסעות ומפעלים</label>
+        <textarea id="note-masaot" placeholder="הכנס תוכן..."></textarea>
+      </div>
+      <div class="notes-item">
+        <label for="note-mishatzim">מש"צים</label>
+        <textarea id="note-mishatzim" placeholder="הכנס תוכן..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- חתימה ותאריך -->
+  <div class="notes-section">
+    <h3>חתימה ותאריך</h3>
+    <div class="sig-row">
+      <div class="sig-date">
+        <label for="reportDate">תאריך מילוי</label>
+        <input type="date" id="reportDate">
+      </div>
+      <div class="sig-canvas-wrap">
+        <label>חתימת המורה (צייר עם האצבע או העכבר)</label>
+        <canvas id="signatureCanvas" width="600" height="110"></canvas>
+        <button type="button" class="btn-clear-sig" onclick="clearSignature()">✕ נקה חתימה</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- עמוד PDF — מחוץ למסך, נוצר דינמית -->
+<div id="pdfPage">
+
+  <!-- כותרת עליונה: ימין=שם המשרד, שמאל=פרטי ביה"ס -->
+  <!-- בטבלת RTL: עמודה ראשונה = ימין, עמודה שנייה = שמאל -->
+  <table style="width:100%;border-collapse:collapse;border:1px solid #000;">
+    <tr>
+      <td style="text-align:right;padding:6px 10px;vertical-align:top;line-height:1.8;">
+        <div style="font-size:14pt;font-weight:bold;">משרד החינוך התרבות, והספורט</div>
+        <div style="font-size:11pt;font-weight:bold;">מינהל חברה ונוער</div>
+        <div style="font-size:11pt;font-weight:bold;">גף של"ח וידיעת הארץ</div>
+      </td>
+      <td style="text-align:right;padding:6px 10px;vertical-align:top;border-right:1px solid #000;width:200px;font-size:9pt;line-height:1.9;">
+        <div>מחוז: <span id="pdf-district"></span></div>
+        <div>שם ביה"ס: <span id="pdf-school"></span></div>
+        <div>חודש: <span id="pdf-month"></span></div>
+        <div>שנה: <span id="pdf-year"></span></div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- כותרת ראשית -->
+  <div style="text-align:center;font-weight:bold;font-size:15pt;border:1px solid #000;border-top:none;padding:5px;">
+    דוח פעילות ונוכחות של מורה של"ח בעבודה
+  </div>
+
+  <!-- פרטי מורה -->
+  <div style="font-weight:bold;font-size:9pt;margin-top:5px;margin-bottom:2px;">פרטי המורה</div>
+  <table class="pdf-tbl">
+    <tr>
+      <th style="width:95px;">מספר זהות</th>
+      <th>שם משפחה</th>
+      <th>שם פרטי</th>
+      <th style="width:95px;">היקף משרה</th>
+      <td rowspan="4" style="width:88px;font-size:7.5pt;vertical-align:top;text-align:right;padding:3px;">
+        האפשרויות<br>ב"תיאור הפעולה":<br>
+        יום שדה, גיחה,<br>
+        שירות לאומי, מסע<br>
+        ביס"ש
+      </td>
+    </tr>
+    <tr>
+      <td id="pdf-id" style="text-align:center;height:22px;"></td>
+      <td id="pdf-lastname" style="text-align:center;"></td>
+      <td id="pdf-firstname" style="text-align:center;"></td>
+      <td id="pdf-jobscope" style="text-align:center;"></td>
+    </tr>
+    <tr>
+      <th colspan="2">כתובת פרטית</th>
+      <th>במקום מדריך</th>
+      <th></th>
+    </tr>
+    <tr>
+      <td colspan="2" id="pdf-address" style="height:22px;"></td>
+      <td id="pdf-substitute"></td>
+      <td></td>
+    </tr>
+  </table>
+
+  <!-- שעות עבודה -->
+  <table class="pdf-tbl">
+    <tr>
+      <td style="text-align:right;width:210px;">שעות העבודה מסל של"ח (כולל שהייה ופרטני)</td>
+      <th style="width:38px;text-align:center;">א</th>
+      <th style="width:38px;text-align:center;">ב</th>
+      <th style="width:38px;text-align:center;">ג</th>
+      <th style="width:38px;text-align:center;">ד</th>
+      <th style="width:38px;text-align:center;">ה</th>
+      <th style="width:38px;text-align:center;">ו</th>
+      <td rowspan="2" style="font-size:7.5pt;text-align:right;vertical-align:top;padding:3px;">השעות השבועיות ניתנות בימים:<br><span id="pdf-workdays"></span></td>
+    </tr>
+    <tr>
+      <td style="height:20px;"></td>
+      <td id="pdf-sh0" style="text-align:center;"></td>
+      <td id="pdf-sh1" style="text-align:center;"></td>
+      <td id="pdf-sh2" style="text-align:center;"></td>
+      <td id="pdf-sh3" style="text-align:center;"></td>
+      <td id="pdf-sh4" style="text-align:center;"></td>
+      <td id="pdf-sh5" style="text-align:center;"></td>
+    </tr>
+    <tr>
+      <td style="text-align:right;">שעות העבודה מסל ביה"ס (כולל שהייה ופרטני)</td>
+      <td id="pdf-sc0" style="text-align:center;"></td>
+      <td id="pdf-sc1" style="text-align:center;"></td>
+      <td id="pdf-sc2" style="text-align:center;"></td>
+      <td id="pdf-sc3" style="text-align:center;"></td>
+      <td id="pdf-sc4" style="text-align:center;"></td>
+      <td id="pdf-sc5" style="text-align:center;"></td>
+      <td></td>
+    </tr>
+  </table>
+
+  <!-- טבלת ימים -->
+  <table class="pdf-tbl" style="margin-top:4px;table-layout:fixed;direction:rtl;">
+    <colgroup>
+      <col style="width:50px;">
+      <col style="width:47px;">
+      <col style="width:56px;">
+      <col style="width:32px;">
+      <col style="width:53px;">
+      <col style="width:86px;">
+      <col style="width:107px;">
+      <col>
+    </colgroup>
+    <thead>
+      <tr style="background:#e0e0e0;">
+        <th style="text-align:center;">היום<br>בחודש</th>
+        <th style="text-align:center;">היום<br>בשבוע</th>
+        <th style="text-align:center;">שעות<br>היעדרות</th>
+        <th style="text-align:center;">ש"נ/<br>מ"מ</th>
+        <th style="text-align:center;">הכיתה</th>
+        <th style="text-align:center;">תיאור<br>הפעולה</th>
+        <th style="text-align:center;">סיבה להיעדרות<br>או שעות נוספות</th>
+        <th style="text-align:center;"></th>
+      </tr>
+    </thead>
+    <tbody id="pdf-body"></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="2" style="font-weight:bold;text-align:right;">סה"כ שעות:</td>
+        <td id="pdf-total" style="text-align:center;"></td>
+        <td colspan="4" style="text-align:right;">חתימת המנהל: ___________________________</td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <!-- כותרת תחתונה -->
+  <div style="margin-top:8px;font-size:8.5pt;line-height:2;">
+    <div>מצ"ב המסמכים הבאים: א.__________________ ב.__________________ ג.__________________</div>
+    <div>אני מצהיר בזה שהפרטים לעיל נכונים.</div>
+  </div>
+  <!-- שורת חתימה — טבלה כדי להימנע מבעיות RTL/flex -->
+  <table style="width:100%;margin-top:10px;font-size:8.5pt;">
+    <tr>
+      <!-- ימין: חתימת המורה (עמודה ראשונה = ימין ב-RTL) -->
+      <td style="text-align:right;vertical-align:middle;" id="pdf-sig-cell">חתימת המורה: ____________________</td>
+      <!-- שמאל: תאריך -->
+      <td style="text-align:left;width:160px;" id="pdf-date-cell">תאריך: ___________</td>
+    </tr>
+  </table>
+
+</div>
+
+<script>
+  // מעבר בין דפים
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  // שמירה ב-localStorage
+  function saveSettings() {
+    const data = {
+      firstName:     document.getElementById('firstName').value,
+      lastName:      document.getElementById('lastName').value,
+      idNumber:      document.getElementById('idNumber').value,
+      jobScope:      document.getElementById('jobScope').value,
+      address:       document.getElementById('address').value,
+      substituteFor: document.getElementById('substituteFor').value,
+      schoolName:    document.getElementById('schoolName').value,
+      district:      document.getElementById('district').value,
+      shelach: [
+        document.getElementById('shelach_sun').value,
+        document.getElementById('shelach_mon').value,
+        document.getElementById('shelach_tue').value,
+        document.getElementById('shelach_wed').value,
+        document.getElementById('shelach_thu').value,
+        document.getElementById('shelach_fri').value,
+      ],
+      school: [
+        document.getElementById('school_sun').value,
+        document.getElementById('school_mon').value,
+        document.getElementById('school_tue').value,
+        document.getElementById('school_wed').value,
+        document.getElementById('school_thu').value,
+        document.getElementById('school_fri').value,
+      ],
+      workDays: document.getElementById('workDays').value,
+    };
+
+    localStorage.setItem('shelach_settings', JSON.stringify(data));
+
+    const msg = document.getElementById('saveMsg');
+    msg.classList.add('show');
+    setTimeout(() => msg.classList.remove('show'), 2500);
+  }
+
+  // ברירות מחדל
+  const DEFAULTS = {
+    firstName:     '',
+    lastName:      '',
+    idNumber:      '',
+    jobScope:      '',
+    address:       '',
+    substituteFor: '',
+    schoolName:    '',
+    district:      '',
+    shelach:       ['', '', '', '', '', ''],
+    school:        ['', '', '', '', '', ''],
+  };
+
+  function loadSettings() {
+    const raw = localStorage.getItem('shelach_settings');
+    const d   = raw ? JSON.parse(raw) : DEFAULTS;
+
+    document.getElementById('firstName').value     = d.firstName     ?? '';
+    document.getElementById('lastName').value      = d.lastName      ?? '';
+    document.getElementById('idNumber').value      = d.idNumber      ?? '';
+    document.getElementById('jobScope').value      = d.jobScope      ?? '';
+    document.getElementById('address').value       = d.address       ?? '';
+    document.getElementById('substituteFor').value = d.substituteFor ?? '';
+    document.getElementById('schoolName').value    = d.schoolName    ?? '';
+    document.getElementById('district').value      = d.district      ?? '';
+
+    const days = ['sun','mon','tue','wed','thu','fri'];
+    days.forEach((day, i) => {
+      document.getElementById('shelach_' + day).value = d.shelach?.[i] ?? '';
+      document.getElementById('school_'  + day).value = d.school?.[i]  ?? '';
+    });
+    document.getElementById('workDays').value = d.workDays ?? '';
+  }
+
+  loadSettings();
+
+  // שמות ימי שבוע בעברית (0=ראשון, 6=שבת)
+  const dayNames = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+
+  // חופשות משרד החינוך — חטיבות עליונות (תשפ"ה–תשפ"א)
+  const VACATIONS = [
+    // תשפ"ה (2024–2025)
+    { start: new Date(2024,  9,  2), end: new Date(2024,  9,  4), label: 'ראש השנה' },
+    { start: new Date(2024,  9, 11), end: new Date(2024,  9, 12), label: 'יום כיפור' },
+    { start: new Date(2024,  9, 16), end: new Date(2024,  9, 24), label: 'סוכות' },
+    { start: new Date(2024,  9, 25), end: new Date(2024,  9, 25), label: 'אסרו חג סוכות' },
+    { start: new Date(2024, 11, 26), end: new Date(2025,  0,  2), label: 'חנוכה' },
+    { start: new Date(2025,  2, 14), end: new Date(2025,  2, 15), label: 'פורים' },
+    { start: new Date(2025,  3,  5), end: new Date(2025,  3, 19), label: 'פסח' },
+    { start: new Date(2025,  4,  1), end: new Date(2025,  4,  1), label: 'יום העצמאות' },
+    { start: new Date(2025,  4, 16), end: new Date(2025,  4, 16), label: 'ל"ג בעומר' },
+    { start: new Date(2025,  5,  1), end: new Date(2025,  5,  3), label: 'שבועות' },
+    { start: new Date(2025,  5, 20), end: new Date(2025,  7, 31), label: 'חופשת קיץ' },
+
+    // תשפ"ו (2025–2026)
+    { start: new Date(2025,  8, 22), end: new Date(2025,  8, 24), label: 'ראש השנה' },
+    { start: new Date(2025,  9,  1), end: new Date(2025,  9,  2), label: 'יום כיפור' },
+    { start: new Date(2025,  9,  3), end: new Date(2025,  9,  5), label: 'גשר' },
+    { start: new Date(2025,  9,  6), end: new Date(2025,  9, 14), label: 'סוכות' },
+    { start: new Date(2025,  9, 15), end: new Date(2025,  9, 15), label: 'אסרו חג סוכות' },
+    { start: new Date(2025, 11, 16), end: new Date(2025, 11, 22), label: 'חנוכה' },
+    { start: new Date(2026,  2,  3), end: new Date(2026,  2,  4), label: 'פורים' },
+    { start: new Date(2026,  2, 24), end: new Date(2026,  3,  8), label: 'פסח' },
+    { start: new Date(2026,  3, 22), end: new Date(2026,  3, 22), label: 'יום העצמאות' },
+    { start: new Date(2026,  4,  5), end: new Date(2026,  4,  5), label: 'ל"ג בעומר' },
+    { start: new Date(2026,  4, 21), end: new Date(2026,  4, 22), label: 'שבועות' },
+    { start: new Date(2026,  5, 20), end: new Date(2026,  7, 31), label: 'חופשת קיץ' },
+
+    // תשפ"ז (2026–2027)
+    { start: new Date(2026,  8, 11), end: new Date(2026,  8, 13), label: 'ראש השנה' },
+    { start: new Date(2026,  8, 20), end: new Date(2026,  8, 21), label: 'יום כיפור' },
+    { start: new Date(2026,  8, 25), end: new Date(2026,  9,  4), label: 'סוכות' },
+    { start: new Date(2026,  9,  5), end: new Date(2026,  9,  5), label: 'אסרו חג סוכות' },
+    { start: new Date(2026, 11,  5), end: new Date(2026, 11, 11), label: 'חנוכה' },
+    { start: new Date(2027,  2, 22), end: new Date(2027,  2, 24), label: 'פורים' },
+    { start: new Date(2027,  3, 14), end: new Date(2027,  3, 29), label: 'פסח' },
+    { start: new Date(2027,  4, 12), end: new Date(2027,  4, 12), label: 'יום העצמאות' },
+    { start: new Date(2027,  4, 25), end: new Date(2027,  4, 25), label: 'ל"ג בעומר' },
+    { start: new Date(2027,  5, 10), end: new Date(2027,  5, 12), label: 'שבועות' },
+    { start: new Date(2027,  5, 20), end: new Date(2027,  7, 31), label: 'חופשת קיץ' },
+
+    // תשפ"ח (2027–2028)
+    { start: new Date(2027,  9,  1), end: new Date(2027,  9,  3), label: 'ראש השנה' },
+    { start: new Date(2027,  9, 10), end: new Date(2027,  9, 11), label: 'יום כיפור' },
+    { start: new Date(2027,  9, 15), end: new Date(2027,  9, 24), label: 'סוכות' },
+    { start: new Date(2027,  9, 25), end: new Date(2027,  9, 25), label: 'אסרו חג סוכות' },
+    { start: new Date(2027, 11, 25), end: new Date(2027, 11, 31), label: 'חנוכה' },
+    { start: new Date(2028,  2, 11), end: new Date(2028,  2, 13), label: 'פורים' },
+    { start: new Date(2028,  3,  3), end: new Date(2028,  3, 18), label: 'פסח' },
+    { start: new Date(2028,  4,  3), end: new Date(2028,  4,  3), label: 'יום העצמאות' },
+    { start: new Date(2028,  4, 14), end: new Date(2028,  4, 14), label: 'ל"ג בעומר' },
+    { start: new Date(2028,  4, 31), end: new Date(2028,  5,  1), label: 'שבועות' },
+    { start: new Date(2028,  5, 20), end: new Date(2028,  7, 31), label: 'חופשת קיץ' },
+
+    // תשפ"ט (2028–2029)
+    { start: new Date(2028,  8, 20), end: new Date(2028,  8, 22), label: 'ראש השנה' },
+    { start: new Date(2028,  8, 29), end: new Date(2028,  8, 30), label: 'יום כיפור' },
+    { start: new Date(2028,  9,  4), end: new Date(2028,  9, 13), label: 'סוכות' },
+    { start: new Date(2028,  9, 14), end: new Date(2028,  9, 14), label: 'אסרו חג סוכות' },
+    { start: new Date(2028, 11, 13), end: new Date(2028, 11, 19), label: 'חנוכה' },
+    { start: new Date(2029,  2,  1), end: new Date(2029,  2,  2), label: 'פורים' },
+    { start: new Date(2029,  2, 23), end: new Date(2029,  3,  7), label: 'פסח' },
+    { start: new Date(2029,  3, 19), end: new Date(2029,  3, 19), label: 'יום העצמאות' },
+    { start: new Date(2029,  4,  3), end: new Date(2029,  4,  3), label: 'ל"ג בעומר' },
+    { start: new Date(2029,  4, 19), end: new Date(2029,  4, 20), label: 'שבועות' },
+    { start: new Date(2029,  5, 20), end: new Date(2029,  7, 31), label: 'חופשת קיץ' },
+
+    // תש"פ (2029–2030)
+    { start: new Date(2029,  8,  9), end: new Date(2029,  8, 11), label: 'ראש השנה' },
+    { start: new Date(2029,  8, 18), end: new Date(2029,  8, 19), label: 'יום כיפור' },
+    { start: new Date(2029,  8, 23), end: new Date(2029,  9,  2), label: 'סוכות' },
+    { start: new Date(2029,  9,  3), end: new Date(2029,  9,  3), label: 'אסרו חג סוכות' },
+    { start: new Date(2029, 11,  2), end: new Date(2029, 11,  8), label: 'חנוכה' },
+    { start: new Date(2030,  2, 18), end: new Date(2030,  2, 20), label: 'פורים' },
+    { start: new Date(2030,  3, 10), end: new Date(2030,  3, 25), label: 'פסח' },
+    { start: new Date(2030,  4,  8), end: new Date(2030,  4,  8), label: 'יום העצמאות' },
+    { start: new Date(2030,  4, 21), end: new Date(2030,  4, 21), label: 'ל"ג בעומר' },
+    { start: new Date(2030,  5,  6), end: new Date(2030,  5,  8), label: 'שבועות' },
+    { start: new Date(2030,  5, 20), end: new Date(2030,  7, 31), label: 'חופשת קיץ' },
+
+    // תשפ"א (2030–2031)
+    { start: new Date(2030,  8, 27), end: new Date(2030,  8, 29), label: 'ראש השנה' },
+    { start: new Date(2030,  9,  6), end: new Date(2030,  9,  7), label: 'יום כיפור' },
+    { start: new Date(2030,  9, 11), end: new Date(2030,  9, 20), label: 'סוכות' },
+    { start: new Date(2030,  9, 21), end: new Date(2030,  9, 21), label: 'אסרו חג סוכות' },
+    { start: new Date(2030, 11, 21), end: new Date(2030, 11, 27), label: 'חנוכה' },
+    { start: new Date(2031,  2,  8), end: new Date(2031,  2, 10), label: 'פורים' },
+    { start: new Date(2031,  2, 29), end: new Date(2031,  3, 13), label: 'פסח' },
+    { start: new Date(2031,  3, 29), end: new Date(2031,  3, 29), label: 'יום העצמאות' },
+    { start: new Date(2031,  4, 11), end: new Date(2031,  4, 11), label: 'ל"ג בעומר' },
+    { start: new Date(2031,  4, 27), end: new Date(2031,  4, 28), label: 'שבועות' },
+    { start: new Date(2031,  5, 20), end: new Date(2031,  7, 31), label: 'חופשת קיץ' },
+  ];
+
+  function getVacationLabel(date) {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    for (const v of VACATIONS) {
+      if (d >= v.start && d <= v.end) return v.label;
+    }
+    // חופשת קיץ אוטומטית לכל שנה (20 ביוני עד 31 באוגוסט)
+    const m = d.getMonth();
+    const day = d.getDate();
+    if ((m === 5 && day >= 20) || m === 6 || m === 7) {
+      return 'חופשת קיץ';
+    }
+    return null;
+  }
+
+  function updateCalendar() {
+    const month = parseInt(document.getElementById('selectMonth').value);
+    const year  = parseInt(document.getElementById('selectYear').value);
+
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    document.querySelectorAll('#reportBody tr').forEach(row => {
+      const day = parseInt(row.dataset.day);
+
+      if (day > daysInMonth) { row.style.display = 'none'; return; }
+
+      const date    = new Date(year, month, day);
+      const weekday = date.getDay();
+
+      if (weekday === 6) { row.style.display = 'none'; return; }
+
+      row.style.display = '';
+      row.querySelector('.weekday').textContent = dayNames[weekday];
+      weekday === 5 ? row.classList.add('row-week-end') : row.classList.remove('row-week-end');
+
+      const vacation = getVacationLabel(date);
+      const inputs   = row.querySelectorAll('input');
+      const descInput = inputs[3]; // עמודת "תיאור הפעולה" (אחרי שעות, ש"נ, כיתה)
+
+      if (vacation) {
+        row.classList.add('row-vacation');
+        row.dataset.vacationLabel = vacation;
+      } else {
+        row.classList.remove('row-vacation');
+        row.dataset.vacationLabel = '';
+      }
+    });
+
+    loadReport(month, year);
+  }
+
+  // --- שמירה וטעינה של נתוני הדוח החודשי ---
+
+  function reportKey(month, year) {
+    return 'shelach_report_' + year + '_' + month;
+  }
+
+  function saveReport() {
+    const month = parseInt(document.getElementById('selectMonth').value);
+    const year  = parseInt(document.getElementById('selectYear').value);
+    const data  = {};
+
+    document.querySelectorAll('#reportBody tr').forEach(row => {
+      if (row.style.display === 'none') return;
+      const day    = row.dataset.day;
+      const inputs = row.querySelectorAll('input');
+      data[day] = {
+        hours:       inputs[0].value,
+        substitute:  inputs[1].value,
+        kita:        inputs[2].value,
+        description: inputs[3].value,
+        reason:      inputs[4].value,
+      };
+    });
+
+    data['_notes'] = {
+      chet:      document.getElementById('note-chet').value,
+      tet:       document.getElementById('note-tet').value,
+      masaot:    document.getElementById('note-masaot').value,
+      mishatzim: document.getElementById('note-mishatzim').value,
+    };
+    data['_date']      = document.getElementById('reportDate').value;
+    data['_signature'] = sigIsEmpty() ? '' : sigCanvas.toDataURL();
+
+    localStorage.setItem(reportKey(month, year), JSON.stringify(data));
+  }
+
+  function clearReport() {
+    const month = parseInt(document.getElementById('selectMonth').value);
+    const year  = parseInt(document.getElementById('selectYear').value);
+    const monthName = document.getElementById('selectMonth').selectedOptions[0].text;
+    if (!confirm('למחוק את כל הנתונים של ' + monthName + ' ' + year + '?')) return;
+    localStorage.removeItem(reportKey(month, year));
+    loadReport(month, year);
+  }
+
+  function loadReport(month, year) {
+    // נקה הכל לפני טעינת החודש החדש
+    document.querySelectorAll('#reportBody tr').forEach(row => {
+      row.querySelectorAll('input').forEach(inp => { inp.value = ''; });
+      // שחזר שם חג כברירת מחדל לשדה התיאור
+      if (row.dataset.vacationLabel) row.querySelectorAll('input')[3].value = row.dataset.vacationLabel;
+    });
+    document.getElementById('note-chet').value      = '';
+    document.getElementById('note-tet').value       = '';
+    document.getElementById('note-masaot').value    = '';
+    document.getElementById('note-mishatzim').value = '';
+    document.getElementById('reportDate').value     = '';
+    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+
+    const raw = localStorage.getItem(reportKey(month, year));
+    if (!raw) { updateTotal(); return; }
+    const data = JSON.parse(raw);
+
+    document.querySelectorAll('#reportBody tr').forEach(row => {
+      const day = row.dataset.day;
+      if (!data[day]) return;
+      const inputs = row.querySelectorAll('input');
+      inputs[0].value = data[day].hours       || '';
+      inputs[1].value = data[day].substitute  || '';
+      inputs[2].value = data[day].kita        || '';
+      inputs[3].value = data[day].description || (row.dataset.vacationLabel || '');
+      inputs[4].value = data[day].reason      || '';
+    });
+
+    // שחזור הערות הנושאים
+    if (data['_notes']) {
+      document.getElementById('note-chet').value      = data['_notes'].chet      || '';
+      document.getElementById('note-tet').value       = data['_notes'].tet       || '';
+      document.getElementById('note-masaot').value    = data['_notes'].masaot    || '';
+      document.getElementById('note-mishatzim').value = data['_notes'].mishatzim || '';
+    }
+
+    // שחזור תאריך וחתימה
+    if (data['_date']) document.getElementById('reportDate').value = data['_date'];
+    if (data['_signature']) {
+      const img = new Image();
+      img.onload = () => sigCtx.drawImage(img, 0, 0);
+      img.src = data['_signature'];
+    }
+
+    updateTotal();
+  }
+
+  // עדכון סה"כ שעות — מסכם את עמודת ש"נ/מ"מ
+  function updateTotal() {
+    let total = 0;
+    document.querySelectorAll('#reportBody tr').forEach(row => {
+      if (row.style.display === 'none') return;
+      const v = parseFloat(row.querySelectorAll('input')[1].value) || 0;
+      total += v;
+    });
+    document.getElementById('totalHours').textContent = total || 0;
+  }
+
+  // שמירה אוטומטית + עדכון סה"כ בכל שינוי
+  document.getElementById('reportBody').addEventListener('input', () => {
+    saveReport();
+    updateTotal();
+  });
+
+  // שמירה אוטומטית של הערות הנושאים
+  ['note-chet', 'note-tet', 'note-masaot', 'note-mishatzim'].forEach(id => {
+    document.getElementById(id).addEventListener('input', saveReport);
+  });
+
+  // שמירה אוטומטית של תאריך
+  document.getElementById('reportDate').addEventListener('change', saveReport);
+
+  // --- חתימה ---
+  const sigCanvas = document.getElementById('signatureCanvas');
+  const sigCtx    = sigCanvas.getContext('2d');
+  let isDrawing = false, lastX = 0, lastY = 0;
+
+  function sigPos(e) {
+    const rect = sigCanvas.getBoundingClientRect();
+    const src  = e.touches ? e.touches[0] : e;
+    return {
+      x: (src.clientX - rect.left) * (sigCanvas.width  / rect.width),
+      y: (src.clientY - rect.top)  * (sigCanvas.height / rect.height),
+    };
+  }
+
+  function sigIsEmpty() {
+    return !sigCtx.getImageData(0, 0, sigCanvas.width, sigCanvas.height).data.some(v => v !== 0);
+  }
+
+  function clearSignature() {
+    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+    saveReport();
+  }
+
+  sigCanvas.addEventListener('mousedown',  e => { isDrawing = true;  const p = sigPos(e); lastX = p.x; lastY = p.y; });
+  sigCanvas.addEventListener('mousemove',  e => {
+    if (!isDrawing) return;
+    const p = sigPos(e);
+    sigCtx.beginPath(); sigCtx.moveTo(lastX, lastY); sigCtx.lineTo(p.x, p.y);
+    sigCtx.strokeStyle = '#000'; sigCtx.lineWidth = 2; sigCtx.lineCap = 'round';
+    sigCtx.stroke();
+    lastX = p.x; lastY = p.y;
+  });
+  sigCanvas.addEventListener('mouseup',    () => { if (isDrawing) { isDrawing = false; saveReport(); } });
+  sigCanvas.addEventListener('mouseleave', () => { if (isDrawing) { isDrawing = false; saveReport(); } });
+
+  sigCanvas.addEventListener('touchstart', e => { e.preventDefault(); isDrawing = true;  const p = sigPos(e); lastX = p.x; lastY = p.y; }, { passive: false });
+  sigCanvas.addEventListener('touchmove',  e => {
+    e.preventDefault();
+    if (!isDrawing) return;
+    const p = sigPos(e);
+    sigCtx.beginPath(); sigCtx.moveTo(lastX, lastY); sigCtx.lineTo(p.x, p.y);
+    sigCtx.strokeStyle = '#000'; sigCtx.lineWidth = 2.5; sigCtx.lineCap = 'round';
+    sigCtx.stroke();
+    lastX = p.x; lastY = p.y;
+  }, { passive: false });
+  sigCanvas.addEventListener('touchend', () => { if (isDrawing) { isDrawing = false; saveReport(); } });
+
+  // ניווט מקלדת בטבלה
+  document.getElementById('reportBody').addEventListener('keydown', function(e) {
+    if (!['Enter','ArrowDown','ArrowUp','ArrowLeft','ArrowRight'].includes(e.key)) return;
+
+    // כל ה-inputs הנראים ולא מושבתים — לפי סדר הטאב
+    const allInputs = Array.from(
+      document.querySelectorAll('#reportBody tr:not(.row-vacation) input:not(:disabled)')
+    ).filter(inp => inp.closest('tr').style.display !== 'none');
+
+    const idx = allInputs.indexOf(e.target);
+    if (idx === -1) return;
+
+    // ---- חץ שמאל: עבור לתא הבא (שמאלה בדף RTL) רק אם הסמן בסוף הטקסט ----
+    if (e.key === 'ArrowLeft') {
+      const atEnd = e.target.selectionStart === e.target.value.length
+                 && e.target.selectionEnd   === e.target.value.length;
+      if (!atEnd) return;
+      e.preventDefault();
+      const next = allInputs[idx + 1];
+      if (next) { next.focus(); next.select(); }
+      return;
+    }
+
+    // ---- חץ ימין: עבור לתא הקודם (ימינה בדף RTL) רק אם הסמן בתחילת הטקסט ----
+    if (e.key === 'ArrowRight') {
+      const atStart = e.target.selectionStart === 0
+                   && e.target.selectionEnd   === 0;
+      if (!atStart) return;
+      e.preventDefault();
+      const prev = allInputs[idx - 1];
+      if (prev) { prev.focus(); prev.select(); }
+      return;
+    }
+
+    // ---- Enter: תא הבא ----
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const next = allInputs[idx + 1];
+      if (next) next.focus();
+      return;
+    }
+
+    // ---- חץ למטה / למעלה: אותה עמודה בשורה הסמוכה ----
+    e.preventDefault();
+    const currentRow = e.target.closest('tr');
+    const colIdx     = Array.from(currentRow.querySelectorAll('input')).indexOf(e.target);
+
+    const visibleRows = Array.from(document.querySelectorAll('#reportBody tr'))
+      .filter(r => r.style.display !== 'none' && !r.classList.contains('row-vacation'));
+    const rowIdx       = visibleRows.indexOf(currentRow);
+    const targetRowIdx = e.key === 'ArrowDown' ? rowIdx + 1 : rowIdx - 1;
+
+    if (targetRowIdx < 0 || targetRowIdx >= visibleRows.length) return;
+    const destInputs = Array.from(
+      visibleRows[targetRowIdx].querySelectorAll('input:not(:disabled)')
+    );
+    const dest = destInputs[Math.min(colIdx, destInputs.length - 1)];
+    if (dest) { dest.focus(); dest.select(); }
+  });
+
+  // --- ייצוא PDF ---
+
+  const MONTH_NAMES = {
+    8:'ספטמבר', 9:'אוקטובר', 10:'נובמבר', 11:'דצמבר',
+    0:'ינואר', 1:'פברואר', 2:'מרץ', 3:'אפריל', 4:'מאי', 5:'יוני'
+  };
+
+  // הערות צד ימין לפי מספר יום
+  const RIGHT_NOTES = {
+    1:  'פרט נושאים, דרכי ביצוע ודרכי פעולה',
+    2:  'שכבת כתות: ח',
+    7:  'שכבת כתות: ט',
+    11: 'שכבת כתות: ___',
+    16: 'מסעות ומפעלים',
+    21: 'מש"צים',
+    24: 'הערות המנחה _______________________',
+    27: 'חתימה ___________________________',
+    28: 'הערות ממונה מחוזי ________________',
+    30: 'חתימה ___________________________',
+  };
+
+  async function printReport() {
+    const btn = document.querySelector('.btn-print');
+    btn.textContent = '⏳ מכין...';
+    btn.disabled = true;
+
+    try {
+      const month = parseInt(document.getElementById('selectMonth').value);
+      const year  = parseInt(document.getElementById('selectYear').value);
+      const raw   = localStorage.getItem('shelach_settings');
+      const s     = raw ? JSON.parse(raw) : DEFAULTS;
+
+      // מילוי כותרת
+      document.getElementById('pdf-district').textContent  = s.district   || '';
+      document.getElementById('pdf-school').textContent    = s.schoolName || '';
+      document.getElementById('pdf-month').textContent     = MONTH_NAMES[month];
+      document.getElementById('pdf-year').textContent      = year;
+
+      // פרטי מורה
+      document.getElementById('pdf-id').textContent         = s.idNumber      || '';
+      document.getElementById('pdf-lastname').textContent   = s.lastName      || '';
+      document.getElementById('pdf-firstname').textContent  = s.firstName     || '';
+      document.getElementById('pdf-jobscope').textContent   = s.jobScope      || '';
+      document.getElementById('pdf-address').textContent    = s.address       || '';
+      document.getElementById('pdf-substitute').textContent = s.substituteFor || '';
+      document.getElementById('pdf-workdays').textContent   = s.workDays      || '___________________________';
+
+      // שעות
+      [0,1,2,3,4,5].forEach(i => {
+        document.getElementById('pdf-sh' + i).textContent = s.shelach?.[i] || '';
+        document.getElementById('pdf-sc' + i).textContent = s.school?.[i]  || '';
+      });
+
+      // חתימה ותאריך
+      const sigDataUrl  = sigIsEmpty() ? '' : sigCanvas.toDataURL();
+      const rawDate     = document.getElementById('reportDate').value;
+      const dateDisplay = rawDate
+        ? new Date(rawDate + 'T00:00:00').toLocaleDateString('he-IL')
+        : '___________';
+
+      // קריאת הערות הנושאים
+      const pdfNotes = {
+        chet:      document.getElementById('note-chet').value,
+        tet:       document.getElementById('note-tet').value,
+        masaot:    document.getElementById('note-masaot').value,
+        mishatzim: document.getElementById('note-mishatzim').value,
+      };
+
+      // בניית שורות הטבלה
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const tbody = document.getElementById('pdf-body');
+      tbody.innerHTML = '';
+      let totalHours = 0;
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date    = new Date(year, month, day);
+        const weekday = date.getDay();
+        if (weekday === 6) continue;
+
+        const vacation  = getVacationLabel(date);
+        const reportRow = document.querySelector(`#reportBody tr[data-day="${day}"]`);
+        const inputs    = reportRow ? reportRow.querySelectorAll('input') : [];
+
+        const hours   = inputs[0]?.value || '';
+        const shanan  = inputs[1]?.value || '';
+        const kita    = inputs[2]?.value || '';
+        const desc    = inputs[3]?.value || '';
+        const reason  = inputs[4]?.value || '';
+        let note = RIGHT_NOTES[day] || '';
+        // הוסף תוכן הערות שמולא על ידי המשתמש
+        if (day === 2  && pdfNotes.chet)      note += '<br>' + pdfNotes.chet;
+        if (day === 7  && pdfNotes.tet)       note += '<br>' + pdfNotes.tet;
+        if (day === 16 && pdfNotes.masaot)    note += '<br>' + pdfNotes.masaot;
+        if (day === 21 && pdfNotes.mishatzim) note += '<br>' + pdfNotes.mishatzim;
+
+        if (shanan) totalHours += parseFloat(shanan) || 0;
+
+        const bg = vacation ? '#f0f0f0' : 'transparent';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="border:1px solid #000;padding:1px 2px;text-align:center;background:${bg};">${day}</td>
+          <td style="border:1px solid #000;padding:1px 2px;text-align:center;background:${bg};">${dayNames[weekday]}</td>
+          <td style="border:1px solid #000;padding:1px 2px;text-align:center;background:${bg};">${hours}</td>
+          <td style="border:1px solid #000;padding:1px 2px;text-align:center;background:${bg};">${shanan}</td>
+          <td style="border:1px solid #000;padding:1px 2px;text-align:center;background:${bg};">${kita}</td>
+          <td colspan="2" style="border:1px solid #000;padding:1px 4px;text-align:right;background:${bg};">${desc}${reason ? ' — ' + reason : ''}</td>
+          <td style="border:1px solid #000;padding:1px 4px;text-align:right;font-size:7pt;background:${bg};vertical-align:top;">${note}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      document.getElementById('pdf-total').textContent = totalHours || 0;
+
+      // חתימה ותאריך בתחתית ה-PDF
+      const sigCell  = document.getElementById('pdf-sig-cell');
+      const dateCell = document.getElementById('pdf-date-cell');
+      if (sigDataUrl) {
+        sigCell.innerHTML = 'חתימת המורה: <img src="' + sigDataUrl + '" style="height:28px;vertical-align:middle;margin-right:4px;">';
+      } else {
+        sigCell.textContent = 'חתימת המורה: ____________________';
+      }
+      dateCell.textContent = 'תאריך: ' + dateDisplay;
+
+      // צילום עם html2canvas
+      const canvas = await html2canvas(document.getElementById('pdfPage'), {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+
+      // יצירת PDF
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+      pdf.save(`דוח-שלח-${MONTH_NAMES[month]}-${year}.pdf`);
+
+    } catch(e) {
+      alert('שגיאה בייצוא PDF: ' + e.message);
+    } finally {
+      btn.textContent = 'ייצא PDF ⬇';
+      btn.disabled = false;
+    }
+  }
+
+
+  // הפעלה ראשונית בטעינת הדף
+  updateCalendar();
+</script>
+
+</body>
+</html>
