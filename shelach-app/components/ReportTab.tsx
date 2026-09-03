@@ -14,6 +14,8 @@ import {
   Table as TableIcon,
   X,
   Check,
+  CheckSquare,
+  Edit3,
 } from 'lucide-react';
 
 interface ReportTabProps {
@@ -48,11 +50,24 @@ export const ReportTab: React.FC<ReportTabProps> = ({
   principalSigImg,
 }) => {
   const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table');
-  const [activeDayPanel, setActiveDayPanel] = useState<number | null>(null);
+
+  // Multi-day selection state
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [selectedDays, setSelectedDays] = useState<number[]>([]);
+
+  // Modal state: list of days being edited (single day or multiple days)
+  const [modalDays, setModalDays] = useState<number[] | null>(null);
+  const [formDraft, setFormDraft] = useState<DayReportEntry>({
+    hours: '',
+    substitute: '',
+    kita: '',
+    description: '',
+    reason: '',
+  });
 
   const daysInMonth = useMemo(() => new Date(year, month + 1, 0).getDate(), [year, month]);
 
-  // Handle cell input change
+  // Handle cell input change in table view
   const handleCellChange = (day: number, field: keyof DayReportEntry, value: string) => {
     onUpdateReport((prev) => {
       const existing = prev.days[day] || {};
@@ -64,6 +79,114 @@ export const ReportTab: React.FC<ReportTabProps> = ({
         },
       };
     });
+  };
+
+  // Toggle day selection in calendar
+  const toggleDaySelection = (day: number) => {
+    setSelectedDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
+  };
+
+  // Select all occurrences of a specific day of week (e.g. all Sundays = 0)
+  const selectAllWeekday = (targetWeekday: number) => {
+    const matchedDays: number[] = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(year, month, d);
+      if (date.getDay() === targetWeekday) {
+        matchedDays.push(d);
+      }
+    }
+    setSelectedDays((prev) => {
+      const set = new Set([...prev, ...matchedDays]);
+      return Array.from(set);
+    });
+  };
+
+  // Select all working days (Sun-Fri)
+  const selectAllWorkdays = () => {
+    const allDays: number[] = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(year, month, d);
+      if (date.getDay() !== 6) { // not Saturday
+        allDays.push(d);
+      }
+    }
+    setSelectedDays(allDays);
+  };
+
+  // Open modal for single day
+  const openSingleDayModal = (day: number) => {
+    setModalDays([day]);
+    const existing = report.days[day] || {};
+    const vacation = getVacationLabel(new Date(year, month, day));
+    setFormDraft({
+      hours: existing.hours || '',
+      substitute: existing.substitute || '',
+      kita: existing.kita || '',
+      description: existing.description || (vacation || ''),
+      reason: existing.reason || '',
+    });
+  };
+
+  // Open modal for multiple selected days
+  const openBatchModal = () => {
+    if (selectedDays.length === 0) return;
+    setModalDays([...selectedDays].sort((a, b) => a - b));
+    setFormDraft({
+      hours: '',
+      substitute: '',
+      kita: '',
+      description: '',
+      reason: '',
+    });
+  };
+
+  // Save modal draft to all days in modalDays
+  const handleSaveModal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!modalDays || modalDays.length === 0) return;
+
+    onUpdateReport((prev) => {
+      const updatedDays = { ...prev.days };
+      modalDays.forEach((day) => {
+        const existing = updatedDays[day] || {};
+        updatedDays[day] = {
+          ...existing,
+          ...(formDraft.hours !== undefined && { hours: formDraft.hours }),
+          ...(formDraft.substitute !== undefined && { substitute: formDraft.substitute }),
+          ...(formDraft.kita !== undefined && { kita: formDraft.kita }),
+          ...(formDraft.description !== undefined && { description: formDraft.description }),
+          ...(formDraft.reason !== undefined && { reason: formDraft.reason }),
+        };
+      });
+      return { ...prev, days: updatedDays };
+    });
+
+    setModalDays(null);
+    setSelectedDays([]);
+    setIsMultiSelectMode(false);
+  };
+
+  // Clear modal days
+  const handleClearModalDays = () => {
+    if (!modalDays || modalDays.length === 0) return;
+    const confirmMsg =
+      modalDays.length === 1
+        ? `האם לנקות את יום ${modalDays[0]}?`
+        : `האם לנקות את הנתונים מ-${modalDays.length} הימים שנבחרו?`;
+
+    if (confirm(confirmMsg)) {
+      onUpdateReport((prev) => {
+        const updatedDays = { ...prev.days };
+        modalDays.forEach((day) => {
+          delete updatedDays[day];
+        });
+        return { ...prev, days: updatedDays };
+      });
+      setModalDays(null);
+      setSelectedDays([]);
+    }
   };
 
   // Calculate totals
@@ -235,7 +358,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                           value={entry.hours || ''}
                           onChange={(e) => handleCellChange(day, 'hours', e.target.value)}
                           placeholder="-"
-                          className="w-full text-center py-1.5 px-2 border border-neutral-200 rounded-md focus:ring-1 focus:ring-blue-500 focus:outline-hidden bg-white"
+                          className="w-full text-center py-1.5 px-2 border border-neutral-200 rounded-md focus:ring-1 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
                         />
                       </td>
                       <td className="p-1">
@@ -244,7 +367,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                           value={entry.substitute || ''}
                           onChange={(e) => handleCellChange(day, 'substitute', e.target.value)}
                           placeholder="-"
-                          className="w-full text-center py-1.5 px-2 border border-neutral-200 rounded-md focus:ring-1 focus:ring-blue-500 focus:outline-hidden bg-white"
+                          className="w-full text-center py-1.5 px-2 border border-neutral-200 rounded-md focus:ring-1 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
                         />
                       </td>
                       <td className="p-1">
@@ -253,7 +376,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                           value={entry.kita || ''}
                           onChange={(e) => handleCellChange(day, 'kita', e.target.value)}
                           placeholder="כיתה"
-                          className="w-full text-center py-1.5 px-2 border border-neutral-200 rounded-md focus:ring-1 focus:ring-blue-500 focus:outline-hidden bg-white"
+                          className="w-full text-center py-1.5 px-2 border border-neutral-200 rounded-md focus:ring-1 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
                         />
                       </td>
                       <td className="p-1">
@@ -262,7 +385,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                           value={entry.description || (vacation ? vacation : '')}
                           onChange={(e) => handleCellChange(day, 'description', e.target.value)}
                           placeholder={vacation ? vacation : 'יום שדה, גיחה, ביס"ש...'}
-                          className="w-full py-1.5 px-3 border border-neutral-200 rounded-md focus:ring-1 focus:ring-blue-500 focus:outline-hidden bg-white"
+                          className="w-full py-1.5 px-3 border border-neutral-200 rounded-md focus:ring-1 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
                         />
                       </td>
                       <td className="p-1">
@@ -271,7 +394,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                           value={entry.reason || ''}
                           onChange={(e) => handleCellChange(day, 'reason', e.target.value)}
                           placeholder="סיבה..."
-                          className="w-full py-1.5 px-3 border border-neutral-200 rounded-md focus:ring-1 focus:ring-blue-500 focus:outline-hidden bg-white"
+                          className="w-full py-1.5 px-3 border border-neutral-200 rounded-md focus:ring-1 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
                         />
                       </td>
                     </tr>
@@ -294,8 +417,79 @@ export const ReportTab: React.FC<ReportTabProps> = ({
           </div>
         </div>
       ) : (
-        /* Calendar View */
-        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-xs border border-neutral-200">
+        /* Calendar View with Multi-Day Selection */
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-xs border border-neutral-200 space-y-4">
+          {/* Multi-Select Toolbar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-neutral-50 p-3 rounded-xl border border-neutral-200">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMultiSelectMode(!isMultiSelectMode);
+                  if (isMultiSelectMode) setSelectedDays([]);
+                }}
+                className={`flex items-center gap-1.5 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-lg border transition cursor-pointer ${
+                  isMultiSelectMode
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                    : 'bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-100'
+                }`}
+              >
+                <CheckSquare className="w-4 h-4" />
+                <span>{isMultiSelectMode ? 'מצב בחירה מרובה פעיל ✓' : 'בחירת מספר ימים'}</span>
+              </button>
+
+              {isMultiSelectMode && (
+                <div className="flex items-center gap-1 flex-wrap text-xs">
+                  <span className="text-neutral-500 font-medium mr-1">בחר ימים:</span>
+                  {[0, 1, 2, 3, 4, 5].map((w) => (
+                    <button
+                      key={w}
+                      type="button"
+                      onClick={() => selectAllWeekday(w)}
+                      className="px-2 py-1 bg-white border border-neutral-300 hover:bg-neutral-100 rounded text-neutral-700 font-medium cursor-pointer transition"
+                    >
+                      ימי {DAY_NAMES[w]}&apos;
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={selectAllWorkdays}
+                    className="px-2 py-1 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 rounded font-semibold cursor-pointer transition"
+                  >
+                    כל החודש
+                  </button>
+                  {selectedDays.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDays([])}
+                      className="px-2 py-1 bg-neutral-200 hover:bg-neutral-300 text-neutral-700 rounded font-medium cursor-pointer transition"
+                    >
+                      נקה בחירה
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* If days are selected: Action buttons */}
+            {selectedDays.length > 0 && (
+              <div className="flex items-center gap-2 animate-in fade-in duration-150">
+                <span className="text-xs font-bold text-blue-800 bg-blue-100 px-2.5 py-1 rounded-full">
+                  נבחרו {selectedDays.length} ימים
+                </span>
+                <button
+                  type="button"
+                  onClick={openBatchModal}
+                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-bold px-3.5 py-1.5 rounded-lg shadow transition active:scale-95 cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>ערוך ימים אלו במקביל</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Calendar Grid */}
           <div className="grid grid-cols-6 gap-2 md:gap-3 text-center">
             {['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'].map((name, i) => (
               <div key={i} className="font-bold text-xs md:text-sm text-neutral-600 py-2 border-b border-neutral-200">
@@ -311,23 +505,41 @@ export const ReportTab: React.FC<ReportTabProps> = ({
               const vacation = getVacationLabel(date);
               const entry = report.days[day] || {};
               const hasData = !!(entry.hours || entry.substitute || entry.kita || entry.description);
+              const isSelected = selectedDays.includes(day);
 
               return (
                 <button
                   key={day}
                   type="button"
-                  onClick={() => setActiveDayPanel(day)}
-                  className={`min-h-[70px] md:min-h-[85px] p-2 rounded-xl border flex flex-col justify-between text-right transition cursor-pointer relative ${
-                    vacation
+                  onClick={() => {
+                    if (isMultiSelectMode) {
+                      toggleDaySelection(day);
+                    } else {
+                      openSingleDayModal(day);
+                    }
+                  }}
+                  className={`min-h-[72px] md:min-h-[85px] p-2 rounded-xl border flex flex-col justify-between text-right transition cursor-pointer relative select-none ${
+                    isSelected
+                      ? 'ring-2 ring-blue-600 bg-blue-50/90 border-blue-500 shadow-xs'
+                      : vacation
                       ? 'bg-amber-50 border-amber-200 hover:bg-amber-100/70'
                       : hasData
-                      ? 'bg-blue-50/60 border-blue-200 hover:bg-blue-100/50'
+                      ? 'bg-blue-50/40 border-blue-200 hover:bg-blue-100/50'
                       : 'bg-white border-neutral-200 hover:bg-neutral-50'
                   }`}
                 >
                   <div className="flex items-center justify-between w-full">
-                    <span className="font-bold text-sm text-neutral-800">{day}</span>
-                    {hasData && <span className="w-2 h-2 rounded-full bg-blue-600"></span>}
+                    <span className={`font-bold text-sm ${isSelected ? 'text-blue-700' : 'text-neutral-800'}`}>
+                      {day}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {hasData && !isSelected && <span className="w-2 h-2 rounded-full bg-blue-600"></span>}
+                      {isSelected && (
+                        <span className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">
+                          ✓
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="text-[10px] md:text-xs text-neutral-600 truncate w-full">
                     {vacation ? (
@@ -347,78 +559,96 @@ export const ReportTab: React.FC<ReportTabProps> = ({
         </div>
       )}
 
-      {/* Calendar Day Edit Drawer / Modal */}
-      {activeDayPanel && (
+      {/* Edit Drawer / Modal (Single day or Multiple Selected Days) */}
+      {modalDays && modalDays.length > 0 && (
         <div
           className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-xs select-none"
           onClick={(e) => {
-            if (e.target === e.currentTarget) setActiveDayPanel(null);
+            if (e.target === e.currentTarget) setModalDays(null);
           }}
         >
-          <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl p-6 space-y-4 animate-in slide-in-from-bottom duration-200">
+          <form
+            onSubmit={handleSaveModal}
+            className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl shadow-2xl p-6 space-y-4 animate-in slide-in-from-bottom duration-200"
+          >
             <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
-              <h3 className="font-bold text-base text-neutral-800">
-                עריכת יום {activeDayPanel} ב{MONTH_NAMES[month]} {year}
-              </h3>
+              <div>
+                <h3 className="font-bold text-base text-neutral-900">
+                  {modalDays.length === 1
+                    ? `עריכת יום ${modalDays[0]} ב${MONTH_NAMES[month]} ${year}`
+                    : `עריכה מרוכזת ל-${modalDays.length} ימים שנבחרו`}
+                </h3>
+                {modalDays.length > 1 && (
+                  <p className="text-xs text-blue-600 font-semibold mt-0.5">
+                    ימים: {modalDays.join(', ')}
+                  </p>
+                )}
+              </div>
               <button
-                onClick={() => setActiveDayPanel(null)}
+                type="button"
+                onClick={() => setModalDays(null)}
                 className="text-neutral-400 hover:text-white p-1 rounded-full hover:bg-neutral-900 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs md:text-sm">
-              <div>
-                <label className="block font-semibold text-neutral-600 mb-1">שעות היעדרות</label>
-                <input
-                  type="number"
-                  step="0.5"
-                  min="0"
-                  value={report.days[activeDayPanel]?.hours || ''}
-                  onChange={(e) => handleCellChange(activeDayPanel, 'hours', e.target.value)}
-                  placeholder="0"
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
-                />
+            <div className="space-y-3.5 text-xs md:text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-neutral-600 mb-1">שעות היעדרות</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0"
+                    value={formDraft.hours || ''}
+                    onChange={(e) => setFormDraft({ ...formDraft, hours: e.target.value })}
+                    placeholder="0"
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-neutral-600 mb-1">ש&quot;נ / מ&quot;מ</label>
+                  <input
+                    type="text"
+                    value={formDraft.substitute || ''}
+                    onChange={(e) => setFormDraft({ ...formDraft, substitute: e.target.value })}
+                    placeholder="שעות נוספות / מילוי מקום"
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block font-semibold text-neutral-600 mb-1">ש&quot;נ / מ&quot;מ</label>
-                <input
-                  type="text"
-                  value={report.days[activeDayPanel]?.substitute || ''}
-                  onChange={(e) => handleCellChange(activeDayPanel, 'substitute', e.target.value)}
-                  placeholder="שעות נוספות או מילוי מקום"
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
-                />
-              </div>
+
               <div>
                 <label className="block font-semibold text-neutral-600 mb-1">כיתה</label>
                 <input
                   type="text"
-                  value={report.days[activeDayPanel]?.kita || ''}
-                  onChange={(e) => handleCellChange(activeDayPanel, 'kita', e.target.value)}
+                  value={formDraft.kita || ''}
+                  onChange={(e) => setFormDraft({ ...formDraft, kita: e.target.value })}
                   placeholder="למשל: ח'2"
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
                 />
               </div>
+
               <div>
                 <label className="block font-semibold text-neutral-600 mb-1">תיאור הפעולה</label>
                 <input
                   type="text"
-                  value={report.days[activeDayPanel]?.description || ''}
-                  onChange={(e) => handleCellChange(activeDayPanel, 'description', e.target.value)}
+                  value={formDraft.description || ''}
+                  onChange={(e) => setFormDraft({ ...formDraft, description: e.target.value })}
                   placeholder="יום שדה, גיחה, ביס&quot;ש..."
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
                 />
               </div>
+
               <div>
                 <label className="block font-semibold text-neutral-600 mb-1">סיבה להיעדרות / שעות נוספות</label>
                 <input
                   type="text"
-                  value={report.days[activeDayPanel]?.reason || ''}
-                  onChange={(e) => handleCellChange(activeDayPanel, 'reason', e.target.value)}
+                  value={formDraft.reason || ''}
+                  onChange={(e) => setFormDraft({ ...formDraft, reason: e.target.value })}
                   placeholder="סיבה..."
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
                 />
               </div>
             </div>
@@ -426,27 +656,28 @@ export const ReportTab: React.FC<ReportTabProps> = ({
             <div className="pt-3 border-t border-neutral-200 flex justify-between gap-3">
               <button
                 type="button"
-                onClick={() => {
-                  onUpdateReport((prev) => {
-                    const copy = { ...prev.days };
-                    delete copy[activeDayPanel];
-                    return { ...prev, days: copy };
-                  });
-                  setActiveDayPanel(null);
-                }}
+                onClick={handleClearModalDays}
                 className="text-red-600 hover:text-red-700 text-xs font-semibold px-3 py-2 rounded-lg hover:bg-red-50 transition cursor-pointer"
               >
-                נקה יום זה
+                {modalDays.length === 1 ? 'נקה יום זה' : 'נקה ימים אלו'}
               </button>
-              <button
-                type="button"
-                onClick={() => setActiveDayPanel(null)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs md:text-sm px-5 py-2 rounded-lg shadow transition cursor-pointer"
-              >
-                שמור וסגור
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setModalDays(null)}
+                  className="px-3.5 py-2 border border-neutral-300 text-neutral-700 hover:bg-neutral-50 rounded-lg text-xs font-semibold transition cursor-pointer"
+                >
+                  ביטול
+                </button>
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs md:text-sm px-5 py-2 rounded-lg shadow transition cursor-pointer"
+                >
+                  {modalDays.length === 1 ? 'שמור וסגור' : `החל על כל ${modalDays.length} הימים`}
+                </button>
+              </div>
             </div>
-          </div>
+          </form>
         </div>
       )}
 
@@ -470,7 +701,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                 }))
               }
               placeholder="פירוט נושאים ודרכי פעולה לשכבת ח'..."
-              className="w-full text-xs md:text-sm p-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+              className="w-full text-xs md:text-sm p-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
             />
           </div>
           <div>
@@ -487,7 +718,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                 }))
               }
               placeholder="פירוט נושאים ודרכי פעולה לשכבת ט'..."
-              className="w-full text-xs md:text-sm p-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+              className="w-full text-xs md:text-sm p-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
             />
           </div>
           <div>
@@ -504,7 +735,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                 }))
               }
               placeholder="פירוט מסעות, מפעלים, גיחות..."
-              className="w-full text-xs md:text-sm p-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+              className="w-full text-xs md:text-sm p-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
             />
           </div>
           <div>
@@ -521,7 +752,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                 }))
               }
               placeholder="פירוט פעילות מועדון מש&quot;צים..."
-              className="w-full text-xs md:text-sm p-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+              className="w-full text-xs md:text-sm p-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
             />
           </div>
         </div>
@@ -542,7 +773,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
             type="date"
             value={report.date}
             onChange={(e) => onUpdateReport((prev) => ({ ...prev, date: e.target.value }))}
-            className="w-full text-sm px-3 py-2 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white"
+            className="w-full text-sm px-3 py-2 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
           />
           {hasPrincipalSig && (
             <div className="mt-3 bg-purple-50 border border-purple-200 rounded-xl p-2.5 text-xs text-purple-800 flex items-center gap-2">
