@@ -6,6 +6,12 @@
   <title>מילוי דוחות פעילות - מורים ומורות לשל"ח</title>
   <meta name="description" content="מילוי דוחות פעילות ונוכחות חודשיים למורי של״ח">
   <script defer src="/_vercel/insights/script.js"></script>
+  <meta name="theme-color" content="#111827">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="דוחות של״ח">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="https://www.moked-shelach.co.il/tiyulim/Images/shelach.gif">
   <meta property="og:title" content='מילוי דוחות פעילות - מורים ומורות לשל"ח'>
   <meta property="og:description" content="מילוי דוחות פעילות ונוכחות חודשיים למורי של״ח">
   <meta property="og:type" content="website">
@@ -1220,13 +1226,63 @@
   #userInfo { display: none; align-items: center; gap: 10px; flex-shrink: 0; }
   #userAvatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.4); object-fit: cover; }
   #userName { font-size: 13px; color: #ccc; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .btn-install-app {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff;
+    border: 1px solid rgba(255,255,255,0.25); border-radius: 6px;
+    padding: 5px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: inherit; display: inline-flex; align-items: center; gap: 5px;
+    transition: all 0.2s;
+  }
+  .btn-install-app:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
   #logoutBtn {
     background: rgba(255,255,255,0.1); color: #fff;
     border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;
     padding: 5px 12px; font-size: 13px; cursor: pointer; font-family: inherit;
   }
   #logoutBtn:hover { background: rgba(255,255,255,0.2); }
-  @media (max-width: 600px) { #userName { display: none; } #headerLogo { display: none; } }
+
+  /* ===== PWA Install Modal ===== */
+  .pwa-modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .pwa-modal-box {
+    background: #fff; border-radius: 12px; max-width: 420px; width: 100%;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); overflow: hidden;
+    animation: pwaPopIn 0.2s ease-out; direction: rtl; text-align: right;
+  }
+  .pwa-modal-header {
+    background: #111827; color: #fff; padding: 14px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .pwa-modal-header h3 { margin: 0; font-size: 16px; font-weight: 700; }
+  .pwa-modal-close { background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; }
+  .pwa-modal-body { padding: 18px; color: #333; line-height: 1.6; }
+  .pwa-modal-footer {
+    padding: 12px 18px; background: #f9fafb; text-align: left;
+    border-top: 1px solid #e5e7eb;
+  }
+  .btn-pwa-close {
+    background: #2563eb; color: #fff; border: none; border-radius: 6px;
+    padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .btn-pwa-close:hover { background: #1d4ed8; }
+  @keyframes pwaPopIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @media (max-width: 600px) {
+    #userName { display: none; }
+    #headerLogo { display: none; }
+    #userInfo { gap: 6px; }
+    .btn-install-app { padding: 4px 8px; font-size: 12px; }
+    #logoutBtn { padding: 4px 8px; font-size: 12px; }
+  }
   </style>
 </head>
 <body>
@@ -1316,6 +1372,7 @@
   <div id="userInfo">
     <img id="userAvatar" src="" alt="">
     <span id="userName"></span>
+    <button id="installAppBtn" class="btn-install-app" onclick="promptInstallApp()" title="התקנת האפליקציה">📲 התקנת אפליקציה</button>
     <button id="logoutBtn" onclick="handleSignOut()">יציאה</button>
   </div>
 </header>
@@ -4020,6 +4077,77 @@
     parseInt(document.getElementById('eshelMonth').value),
     parseInt(document.getElementById('eshelYear').value)
   );
+
+  // ===== PWA Installation Logic =====
+  let deferredInstallPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    const btn = document.getElementById('installAppBtn');
+    if (btn && !isRunningStandalone()) btn.style.display = 'inline-flex';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    const btn = document.getElementById('installAppBtn');
+    if (btn) btn.style.display = 'none';
+  });
+
+  function isRunningStandalone() {
+    return (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone === true);
+  }
+
+  function promptInstallApp() {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          const btn = document.getElementById('installAppBtn');
+          if (btn) btn.style.display = 'none';
+        }
+        deferredInstallPrompt = null;
+      });
+      return;
+    }
+
+    // אם בדפדפן iOS (Safari) או דפדפן שלא תומך ב-prompt אוטומטי
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const modal = document.getElementById('pwaInstallModal');
+    const iosGuide = document.getElementById('pwaIosGuide');
+    const genericGuide = document.getElementById('pwaGenericGuide');
+
+    if (modal) {
+      if (isIOS) {
+        if (iosGuide) iosGuide.style.display = 'block';
+        if (genericGuide) genericGuide.style.display = 'none';
+      } else {
+        if (iosGuide) iosGuide.style.display = 'none';
+        if (genericGuide) genericGuide.style.display = 'block';
+      }
+      modal.style.display = 'flex';
+    }
+  }
+
+  function closePwaModal() {
+    const modal = document.getElementById('pwaInstallModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  // הסתרת הכפתור אם האפליקציה כבר מותקנת ורצה ב-Standalone
+  if (isRunningStandalone()) {
+    const btn = document.getElementById('installAppBtn');
+    if (btn) btn.style.display = 'none';
+  }
+
+  // רישום Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(err => {
+        console.log('ServiceWorker registration error:', err);
+      });
+    });
+  }
 </script>
 
 <!-- פאנל יום — מצב לוח שנה -->
@@ -4079,6 +4207,32 @@
         <svg viewBox="0 0 32 32" width="18" height="18" fill="white"><path d="M28 6H4a2 2 0 00-2 2v16a2 2 0 002 2h24a2 2 0 002-2V8a2 2 0 00-2-2zm0 2v.51l-12 7.74L4 8.51V8h24zM4 24V11.13l11.45 7.38a1 1 0 001.1 0L28 11.13V24H4z"/></svg>
         Gmail
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- מודל הדרכת התקנת אפליקציה -->
+<div id="pwaInstallModal" class="pwa-modal-backdrop" style="display:none;" onclick="if(event.target===this)closePwaModal()">
+  <div class="pwa-modal-box">
+    <div class="pwa-modal-header">
+      <h3>📲 התקנת האפליקציה</h3>
+      <button class="pwa-modal-close" onclick="closePwaModal()">✕</button>
+    </div>
+    <div class="pwa-modal-body" id="pwaModalBody">
+      <div id="pwaIosGuide" style="display:none;">
+        <p style="margin-bottom:12px; font-weight:700; font-size:15px; color:#111827;">להתקנה מהירה באייפון / אייפד:</p>
+        <ol style="margin-right:20px; line-height:1.8; font-size:14px; color:#374151;">
+          <li>לחץ על כפתור השיתוף בתחתית הדפדפן (<strong>ריבוע עם חץ למעלה ⎋</strong>).</li>
+          <li>גלול בתפריט ובחר ב-<strong>"הוסף למסך הבית" ➕</strong>.</li>
+          <li>לחץ על <strong>"הוסף"</strong> בפינה העליונה.</li>
+        </ol>
+      </div>
+      <div id="pwaGenericGuide" style="display:none;">
+        <p style="margin-bottom:10px; font-size:14px; line-height:1.6; color:#374151;">ניתן להתקין את האפליקציה ישירות דרך תפריט הדפדפן (3 נקודות בפינה העליונה) ולבחור ב-<strong>"התקן אפליקציה"</strong> או <strong>"הוסף למסך הבית"</strong>.</p>
+      </div>
+    </div>
+    <div class="pwa-modal-footer">
+      <button class="btn-pwa-close" onclick="closePwaModal()">הבנתי, תודה</button>
     </div>
   </div>
 </div>
