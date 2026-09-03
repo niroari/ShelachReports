@@ -59,14 +59,16 @@ export async function generateMonthlyReportPdf(
 
     rowsHtml.push(`
       <tr style="height:17px;font-size:8pt;">
-        <td style="border:1px solid #000;padding:1px 2px;text-align:center;">${day}</td>
-        <td style="border:1px solid #000;padding:1px 2px;text-align:center;">${dayNames[weekday]}</td>
-        <td style="border:1px solid #000;padding:1px 2px;text-align:center;">${entry.hours || ''}</td>
-        <td style="border:1px solid #000;padding:1px 2px;text-align:center;">${entry.substitute || ''}</td>
-        <td style="border:1px solid #000;padding:1px 2px;text-align:center;">${entry.kita || ''}</td>
-        <td style="border:1px solid #000;padding:1px 2px;text-align:right;">${entry.description || ''}</td>
-        <td style="border:1px solid #000;padding:1px 2px;text-align:right;">${entry.reason || ''}</td>
-        <td style="border:1px solid #000;padding:1px 2px;text-align:right;font-size:7.5pt;">${combinedNote}</td>
+        <td style="border:1px solid #000;padding:1px 2px;text-align:center;vertical-align:top;line-height:1.2;">${day}</td>
+        <td style="border:1px solid #000;padding:1px 2px;text-align:center;vertical-align:top;line-height:1.2;">${dayNames[weekday]}</td>
+        <td style="border:1px solid #000;padding:1px 2px;text-align:center;vertical-align:top;line-height:1.2;">${entry.hours || ''}</td>
+        <td style="border:1px solid #000;padding:1px 2px;text-align:center;vertical-align:top;line-height:1.2;">${entry.substitute || ''}</td>
+        <td style="border:1px solid #000;padding:1px 2px;text-align:center;vertical-align:top;line-height:1.2;">${entry.kita || ''}</td>
+        <td style="border:1px solid #000;padding:1px 3px;text-align:right;vertical-align:top;line-height:1.2;">${entry.description || ''}</td>
+        <td style="border:1px solid #000;padding:1px 3px;text-align:right;vertical-align:top;line-height:1.2;">${entry.reason || ''}</td>
+        <td style="border:1px solid #000;padding:0px 3px 2px 3px;text-align:right;font-size:7pt;vertical-align:top;line-height:1.15;">
+          <div style="margin-top:-1px;">${combinedNote}</div>
+        </td>
       </tr>
     `);
   }
