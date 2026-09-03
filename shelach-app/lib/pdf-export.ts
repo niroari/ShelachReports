@@ -59,14 +59,14 @@ export async function generateMonthlyReportPdf(
 
     rowsHtml.push(`
       <tr style="height:20px;font-size:8pt;">
-        <td style="border:1px solid #000;padding:2px 2px;text-align:center;vertical-align:top;line-height:1.15;">${day}</td>
-        <td style="border:1px solid #000;padding:2px 2px;text-align:center;vertical-align:top;line-height:1.15;">${dayNames[weekday]}</td>
-        <td style="border:1px solid #000;padding:2px 2px;text-align:center;vertical-align:top;line-height:1.15;">${entry.hours || ''}</td>
-        <td style="border:1px solid #000;padding:2px 2px;text-align:center;vertical-align:top;line-height:1.15;">${entry.substitute || ''}</td>
-        <td style="border:1px solid #000;padding:2px 2px;text-align:center;vertical-align:top;line-height:1.15;">${entry.kita || ''}</td>
-        <td style="border:1px solid #000;padding:2px 4px;text-align:right;vertical-align:top;line-height:1.15;">${entry.description || ''}</td>
-        <td style="border:1px solid #000;padding:2px 4px;text-align:right;vertical-align:top;line-height:1.15;">${entry.reason || ''}</td>
-        <td style="border:1px solid #000;padding:2px 4px;text-align:right;font-size:7pt;vertical-align:top;line-height:1.15;">${combinedNote}</td>
+        <td style="border:1px solid #000;padding:0px 2px 4px 2px;text-align:center;vertical-align:top;">${day}</td>
+        <td style="border:1px solid #000;padding:0px 2px 4px 2px;text-align:center;vertical-align:top;">${dayNames[weekday]}</td>
+        <td style="border:1px solid #000;padding:0px 2px 4px 2px;text-align:center;vertical-align:top;">${entry.hours || ''}</td>
+        <td style="border:1px solid #000;padding:0px 2px 4px 2px;text-align:center;vertical-align:top;">${entry.substitute || ''}</td>
+        <td style="border:1px solid #000;padding:0px 2px 4px 2px;text-align:center;vertical-align:top;">${entry.kita || ''}</td>
+        <td style="border:1px solid #000;padding:0px 4px 4px 4px;text-align:right;vertical-align:top;">${entry.description || ''}</td>
+        <td style="border:1px solid #000;padding:0px 4px 4px 4px;text-align:right;vertical-align:top;">${entry.reason || ''}</td>
+        <td style="border:1px solid #000;padding:0px 4px 4px 4px;text-align:right;font-size:7pt;vertical-align:top;">${combinedNote}</td>
       </tr>
     `);
   }
@@ -80,6 +80,13 @@ export async function generateMonthlyReportPdf(
   const workdaysText = activeDays.join(', ');
 
   container.innerHTML = `
+    <style>
+      #pdfPage-render * {
+        box-sizing: border-box;
+        line-height: normal;
+      }
+    </style>
+
     <!-- כותרת עליונה -->
     <table style="width:100%;border-collapse:collapse;border:1px solid #000;">
       <tr>
@@ -106,11 +113,11 @@ export async function generateMonthlyReportPdf(
     <div style="font-weight:bold;font-size:9pt;margin-top:5px;margin-bottom:2px;">פרטי המורה</div>
     <table style="width:100%;border-collapse:collapse;margin-top:3px;">
       <tr>
-        <th style="border:1px solid #000;padding:3px 3px;font-size:8.5pt;width:95px;vertical-align:top;line-height:1.1;">מספר זהות</th>
-        <th style="border:1px solid #000;padding:3px 3px;font-size:8.5pt;vertical-align:top;line-height:1.1;">שם משפחה</th>
-        <th style="border:1px solid #000;padding:3px 3px;font-size:8.5pt;vertical-align:top;line-height:1.1;">שם פרטי</th>
-        <th style="border:1px solid #000;padding:3px 3px;font-size:8.5pt;width:95px;vertical-align:top;line-height:1.1;">היקף משרה</th>
-        <td rowspan="4" style="border:1px solid #000;width:88px;font-size:7.5pt;vertical-align:top;text-align:right;padding:4px 3px;line-height:1.2;">
+        <th style="border:1px solid #000;padding:0px 3px 4px 3px;font-size:8.5pt;width:95px;vertical-align:top;">מספר זהות</th>
+        <th style="border:1px solid #000;padding:0px 3px 4px 3px;font-size:8.5pt;vertical-align:top;">שם משפחה</th>
+        <th style="border:1px solid #000;padding:0px 3px 4px 3px;font-size:8.5pt;vertical-align:top;">שם פרטי</th>
+        <th style="border:1px solid #000;padding:0px 3px 4px 3px;font-size:8.5pt;width:95px;vertical-align:top;">היקף משרה</th>
+        <td rowspan="4" style="border:1px solid #000;width:88px;font-size:7.5pt;vertical-align:top;text-align:right;padding:2px 3px;line-height:1.2;">
           האפשרויות<br>ב"תיאור הפעולה":<br>
           יום שדה, גיחה,<br>
           שירות לאומי, מסע<br>
@@ -118,53 +125,53 @@ export async function generateMonthlyReportPdf(
         </td>
       </tr>
       <tr>
-        <td style="border:1px solid #000;padding:4px 3px;font-size:8.5pt;text-align:center;height:24px;vertical-align:top;line-height:1.1;">${settings.idNumber}</td>
-        <td style="border:1px solid #000;padding:4px 3px;font-size:8.5pt;text-align:center;vertical-align:top;line-height:1.1;">${settings.lastName}</td>
-        <td style="border:1px solid #000;padding:4px 3px;font-size:8.5pt;text-align:center;vertical-align:top;line-height:1.1;">${settings.firstName}</td>
-        <td style="border:1px solid #000;padding:4px 3px;font-size:8.5pt;text-align:center;vertical-align:top;line-height:1.1;">${settings.jobScope}</td>
+        <td style="border:1px solid #000;padding:0px 3px 6px 3px;font-size:8.5pt;text-align:center;height:22px;vertical-align:top;">${settings.idNumber}</td>
+        <td style="border:1px solid #000;padding:0px 3px 6px 3px;font-size:8.5pt;text-align:center;vertical-align:top;">${settings.lastName}</td>
+        <td style="border:1px solid #000;padding:0px 3px 6px 3px;font-size:8.5pt;text-align:center;vertical-align:top;">${settings.firstName}</td>
+        <td style="border:1px solid #000;padding:0px 3px 6px 3px;font-size:8.5pt;text-align:center;vertical-align:top;">${settings.jobScope}</td>
       </tr>
       <tr>
-        <th colspan="2" style="border:1px solid #000;padding:3px 3px;font-size:8.5pt;vertical-align:top;line-height:1.1;">כתובת פרטית</th>
-        <th style="border:1px solid #000;padding:3px 3px;font-size:8.5pt;vertical-align:top;line-height:1.1;">במקום מדריך</th>
-        <th style="border:1px solid #000;padding:3px 3px;font-size:8.5pt;vertical-align:top;line-height:1.1;"></th>
+        <th colspan="2" style="border:1px solid #000;padding:0px 3px 4px 3px;font-size:8.5pt;vertical-align:top;">כתובת פרטית</th>
+        <th style="border:1px solid #000;padding:0px 3px 4px 3px;font-size:8.5pt;vertical-align:top;">במקום מדריך</th>
+        <th style="border:1px solid #000;padding:0px 3px 4px 3px;font-size:8.5pt;vertical-align:top;"></th>
       </tr>
       <tr>
-        <td colspan="2" style="border:1px solid #000;padding:4px 3px;font-size:8.5pt;height:24px;vertical-align:top;line-height:1.1;">${settings.address}</td>
-        <td style="border:1px solid #000;padding:4px 3px;font-size:8.5pt;vertical-align:top;line-height:1.1;">${settings.substituteFor}</td>
-        <td style="border:1px solid #000;padding:4px 3px;font-size:8.5pt;vertical-align:top;line-height:1.1;"></td>
+        <td colspan="2" style="border:1px solid #000;padding:0px 4px 6px 4px;font-size:8.5pt;height:22px;vertical-align:top;text-align:right;">${settings.address}</td>
+        <td style="border:1px solid #000;padding:0px 3px 6px 3px;font-size:8.5pt;vertical-align:top;">${settings.substituteFor}</td>
+        <td style="border:1px solid #000;padding:0px 3px 6px 3px;font-size:8.5pt;vertical-align:top;"></td>
       </tr>
     </table>
 
     <!-- שעות עבודה -->
     <table style="width:100%;border-collapse:collapse;margin-top:3px;">
       <tr>
-        <td style="border:1px solid #000;padding:3px 3px;font-size:8.5pt;text-align:right;width:210px;vertical-align:top;line-height:1.1;">שעות העבודה מסל של"ח (כולל שהייה ופרטני)</td>
-        <th style="border:1px solid #000;padding:3px 3px;font-size:8.5pt;width:38px;text-align:center;vertical-align:top;line-height:1.1;">א</th>
-        <th style="border:1px solid #000;padding:3px 3px;font-size:8.5pt;width:38px;text-align:center;vertical-align:top;line-height:1.1;">ב</th>
-        <th style="border:1px solid #000;padding:3px 3px;font-size:8.5pt;width:38px;text-align:center;vertical-align:top;line-height:1.1;">ג</th>
-        <th style="border:1px solid #000;padding:3px 3px;font-size:8.5pt;width:38px;text-align:center;vertical-align:top;line-height:1.1;">ד</th>
-        <th style="border:1px solid #000;padding:3px 3px;font-size:8.5pt;width:38px;text-align:center;vertical-align:top;line-height:1.1;">ה</th>
-        <th style="border:1px solid #000;padding:3px 3px;font-size:8.5pt;width:38px;text-align:center;vertical-align:top;line-height:1.1;">ו</th>
-        <td rowspan="2" style="border:1px solid #000;font-size:7.5pt;text-align:right;vertical-align:top;padding:3px 3px;line-height:1.2;">השעות השבועיות ניתנות בימים:<br><span>${workdaysText}</span></td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;font-size:8.5pt;text-align:right;width:210px;vertical-align:top;">שעות העבודה מסל של"ח (כולל שהייה ופרטני)</td>
+        <th style="border:1px solid #000;padding:0px 3px 4px 3px;font-size:8.5pt;width:38px;text-align:center;vertical-align:top;">א</th>
+        <th style="border:1px solid #000;padding:0px 3px 4px 3px;font-size:8.5pt;width:38px;text-align:center;vertical-align:top;">ב</th>
+        <th style="border:1px solid #000;padding:0px 3px 4px 3px;font-size:8.5pt;width:38px;text-align:center;vertical-align:top;">ג</th>
+        <th style="border:1px solid #000;padding:0px 3px 4px 3px;font-size:8.5pt;width:38px;text-align:center;vertical-align:top;">ד</th>
+        <th style="border:1px solid #000;padding:0px 3px 4px 3px;font-size:8.5pt;width:38px;text-align:center;vertical-align:top;">ה</th>
+        <th style="border:1px solid #000;padding:0px 3px 4px 3px;font-size:8.5pt;width:38px;text-align:center;vertical-align:top;">ו</th>
+        <td rowspan="2" style="border:1px solid #000;font-size:7.5pt;text-align:right;vertical-align:top;padding:1px 3px 3px 3px;line-height:1.2;">השעות השבועיות ניתנות בימים:<br><span>${workdaysText}</span></td>
       </tr>
       <tr>
-        <td style="border:1px solid #000;padding:3px 3px;height:20px;vertical-align:top;"></td>
-        <td style="border:1px solid #000;padding:3px 3px;text-align:center;vertical-align:top;line-height:1.1;">${settings.shelachHours[0] || ''}</td>
-        <td style="border:1px solid #000;padding:3px 3px;text-align:center;vertical-align:top;line-height:1.1;">${settings.shelachHours[1] || ''}</td>
-        <td style="border:1px solid #000;padding:3px 3px;text-align:center;vertical-align:top;line-height:1.1;">${settings.shelachHours[2] || ''}</td>
-        <td style="border:1px solid #000;padding:3px 3px;text-align:center;vertical-align:top;line-height:1.1;">${settings.shelachHours[3] || ''}</td>
-        <td style="border:1px solid #000;padding:3px 3px;text-align:center;vertical-align:top;line-height:1.1;">${settings.shelachHours[4] || ''}</td>
-        <td style="border:1px solid #000;padding:3px 3px;text-align:center;vertical-align:top;line-height:1.1;">${settings.shelachHours[5] || ''}</td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;height:20px;vertical-align:top;"></td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;text-align:center;vertical-align:top;">${settings.shelachHours[0] || ''}</td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;text-align:center;vertical-align:top;">${settings.shelachHours[1] || ''}</td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;text-align:center;vertical-align:top;">${settings.shelachHours[2] || ''}</td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;text-align:center;vertical-align:top;">${settings.shelachHours[3] || ''}</td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;text-align:center;vertical-align:top;">${settings.shelachHours[4] || ''}</td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;text-align:center;vertical-align:top;">${settings.shelachHours[5] || ''}</td>
       </tr>
       <tr>
-        <td style="border:1px solid #000;padding:3px 3px;font-size:8.5pt;text-align:right;vertical-align:top;line-height:1.1;">שעות העבודה מסל ביה"ס (כולל שהייה ופרטני)</td>
-        <td style="border:1px solid #000;padding:3px 3px;text-align:center;vertical-align:top;line-height:1.1;">${settings.schoolHours[0] || ''}</td>
-        <td style="border:1px solid #000;padding:3px 3px;text-align:center;vertical-align:top;line-height:1.1;">${settings.schoolHours[1] || ''}</td>
-        <td style="border:1px solid #000;padding:3px 3px;text-align:center;vertical-align:top;line-height:1.1;">${settings.schoolHours[2] || ''}</td>
-        <td style="border:1px solid #000;padding:3px 3px;text-align:center;vertical-align:top;line-height:1.1;">${settings.schoolHours[3] || ''}</td>
-        <td style="border:1px solid #000;padding:3px 3px;text-align:center;vertical-align:top;line-height:1.1;">${settings.schoolHours[4] || ''}</td>
-        <td style="border:1px solid #000;padding:3px 3px;text-align:center;vertical-align:top;line-height:1.1;">${settings.schoolHours[5] || ''}</td>
-        <td style="border:1px solid #000;padding:3px 3px;"></td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;font-size:8.5pt;text-align:right;vertical-align:top;">שעות העבודה מסל ביה"ס (כולל שהייה ופרטני)</td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;text-align:center;vertical-align:top;">${settings.schoolHours[0] || ''}</td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;text-align:center;vertical-align:top;">${settings.schoolHours[1] || ''}</td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;text-align:center;vertical-align:top;">${settings.schoolHours[2] || ''}</td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;text-align:center;vertical-align:top;">${settings.schoolHours[3] || ''}</td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;text-align:center;vertical-align:top;">${settings.schoolHours[4] || ''}</td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;text-align:center;vertical-align:top;">${settings.schoolHours[5] || ''}</td>
+        <td style="border:1px solid #000;padding:0px 3px 4px 3px;"></td>
       </tr>
     </table>
 
@@ -182,14 +189,14 @@ export async function generateMonthlyReportPdf(
       </colgroup>
       <thead>
         <tr style="background:#e0e0e0;">
-          <th style="border:1px solid #000;padding:2px 3px;font-size:8.5pt;text-align:center;vertical-align:top;line-height:1.15;">היום<br>בחודש</th>
-          <th style="border:1px solid #000;padding:2px 3px;font-size:8.5pt;text-align:center;vertical-align:top;line-height:1.15;">היום<br>בשבוע</th>
-          <th style="border:1px solid #000;padding:2px 3px;font-size:8.5pt;text-align:center;vertical-align:top;line-height:1.15;">שעות<br>היעדרות</th>
-          <th style="border:1px solid #000;padding:2px 3px;font-size:8.5pt;text-align:center;vertical-align:top;line-height:1.15;">ש"נ/<br>מ"מ</th>
-          <th style="border:1px solid #000;padding:2px 3px;font-size:8.5pt;text-align:center;vertical-align:top;line-height:1.15;">הכיתה</th>
-          <th style="border:1px solid #000;padding:2px 3px;font-size:8.5pt;text-align:center;vertical-align:top;line-height:1.15;">תיאור<br>הפעולה</th>
-          <th style="border:1px solid #000;padding:2px 3px;font-size:8.5pt;text-align:center;vertical-align:top;line-height:1.15;">סיבה להיעדרות<br>או שעות נוספות</th>
-          <th style="border:1px solid #000;padding:2px 3px;font-size:8.5pt;text-align:center;vertical-align:top;line-height:1.15;"></th>
+          <th style="border:1px solid #000;padding:0px 2px 3px 2px;font-size:8pt;text-align:center;vertical-align:top;">היום<br>בחודש</th>
+          <th style="border:1px solid #000;padding:0px 2px 3px 2px;font-size:8pt;text-align:center;vertical-align:top;">היום<br>בשבוע</th>
+          <th style="border:1px solid #000;padding:0px 2px 3px 2px;font-size:8pt;text-align:center;vertical-align:top;">שעות<br>היעדרות</th>
+          <th style="border:1px solid #000;padding:0px 2px 3px 2px;font-size:8pt;text-align:center;vertical-align:top;">ש"נ/<br>מ"מ</th>
+          <th style="border:1px solid #000;padding:0px 2px 3px 2px;font-size:8pt;text-align:center;vertical-align:top;">הכיתה</th>
+          <th style="border:1px solid #000;padding:0px 2px 3px 2px;font-size:8pt;text-align:center;vertical-align:top;">תיאור<br>הפעולה</th>
+          <th style="border:1px solid #000;padding:0px 2px 3px 2px;font-size:8pt;text-align:center;vertical-align:top;">סיבה להיעדרות<br>או שעות נוספות</th>
+          <th style="border:1px solid #000;padding:0px 2px 3px 2px;font-size:8pt;text-align:center;vertical-align:top;"></th>
         </tr>
       </thead>
       <tbody>
