@@ -1,0 +1,25 @@
+// app/manifest.ts
+import { MetadataRoute } from 'next';
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'דוחות של"ח',
+    short_name: 'דוחות של"ח',
+    description: 'מילוי דוחות פעילות ונוכחות חודשיים וטופסי אש"ל למורי של"ח',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#111827',
+    theme_color: '#111827',
+    orientation: 'portrait-primary',
+    lang: 'he',
+    dir: 'rtl',
+    icons: [
+      {
+        src: 'https://www.moked-shelach.co.il/tiyulim/Images/shelach.gif',
+        sizes: '192x192 512x512',
+        type: 'image/gif',
+        purpose: 'maskable',
+      },
+    ],
+  };
+}
