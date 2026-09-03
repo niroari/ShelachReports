@@ -39,10 +39,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         return 'הסיסמה חלשה מדי (נדרשים לפחות 6 תווים)';
       case 'auth/invalid-email':
         return 'כתובת אימייל לא חוקית';
-      case 'auth/popup-closed-by-user':
-        return 'חלון ההתחברות נסגר לפני השלמת התהליך';
+      case 'auth/unauthorized-domain':
+        return 'כתובת האתר הנוכחית אינה מורשית ב-Firebase. יש להוסיף את הדומיין ב-Firebase Console תחת Authentication > Settings > Authorized domains.';
       default:
-        return 'אירעה שגיאה בהתחברות. נסה שוב.';
+        return code ? `אירעה שגיאה (${code}). נסה שוב.` : 'אירעה שגיאה בהתחברות. נסה שוב.';
     }
   };
 
