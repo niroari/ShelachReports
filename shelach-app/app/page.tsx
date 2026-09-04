@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { onAuthStateChanged, signOut, User } from 'firebase/auth';
+import { onAuthStateChanged, signOut, User, getRedirectResult } from 'firebase/auth';
 import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import {
@@ -116,6 +116,17 @@ export default function Home() {
 
   // Auth State Listener & Initial Settings Load
   useEffect(() => {
+    // Process redirect sign-in result (mobile flow)
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result?.user) {
+          setUser(result.user);
+        }
+      })
+      .catch((err) => {
+        console.error('Redirect sign-in error:', err);
+      });
+
     // 1. Immediately load from localStorage on initial render before auth is resolved
     getSettings().then((localSettings) => {
       setSettings((prev) => {
