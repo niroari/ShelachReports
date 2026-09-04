@@ -4,7 +4,6 @@
 import React, { useState } from 'react';
 import {
   signInWithPopup,
-  signInWithRedirect,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from 'firebase/auth';
@@ -41,7 +40,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       case 'auth/invalid-email':
         return 'כתובת אימייל לא חוקית';
       case 'auth/popup-blocked':
-        return 'החלון הקופץ נחסם על ידי הדפדפן. מעביר להתחברות ישירה...';
+      case 'auth/cancelled-popup-request':
+        return 'חלון ההתחברות נחסם על ידי הדפדפן במכשיר. לחץ על סמל החלונות החסומים בדפדפן ובחר "אפשר תמיד", או התחבר עם אימייל וסיסמה בלשונית למעלה.';
       case 'auth/unauthorized-domain':
         return 'כתובת האתר הנוכחית אינה מורשית ב-Firebase. יש להוסיף את הדומיין ב-Firebase Console תחת Authentication > Settings > Authorized domains.';
       default:
@@ -50,8 +50,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   };
 
   const handleGoogleSignIn = () => {
-    // 1. Call signInWithPopup SYNCHRONOUSLY at the direct user tap event.
-    // This preserves the browser's UserActivation token so mobile Chrome and Safari won't block the popup.
+    // Call signInWithPopup synchronously upon tap
     const authPromise = signInWithPopup(auth, googleProvider);
 
     setErrorMsg('');
@@ -61,17 +60,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       .then(() => {
         onClose();
       })
-      .catch(async (e: any) => {
+      .catch((e: any) => {
         console.error('Google sign in error:', e);
-        if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request') {
-          // If popup is blocked by strict browser settings, fallback to redirect
-          try {
-            await signInWithRedirect(auth, googleProvider);
-            return;
-          } catch (redirectError: any) {
-            setErrorMsg(translateAuthError(redirectError.code || ''));
-          }
-        } else if (e.code !== 'auth/popup-closed-by-user') {
+        if (e.code !== 'auth/popup-closed-by-user') {
           setErrorMsg(translateAuthError(e.code || ''));
         }
       })
@@ -169,8 +160,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
         <div className="p-6">
           {errorMsg && (
-            <div className="bg-red-50 text-red-700 text-xs p-3 rounded-lg border border-red-200 mb-4 font-medium">
-              {errorMsg}
+            <div className="bg-red-50 text-red-700 text-xs p-3 rounded-lg border border-red-200 mb-4 font-medium leading-relaxed">
+              <p>{errorMsg}</p>
+              {tab === 'google' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setErrorMsg('');
+                    setTab('email');
+                  }}
+                  className="mt-2 text-blue-600 underline font-semibold cursor-pointer block hover:text-blue-800"
+                >
+                  מעבר להתחברות עם אימייל וסיסמה &larr;
+                </button>
+              )}
             </div>
           )}
 
