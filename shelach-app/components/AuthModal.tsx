@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import {
   signInWithPopup,
+  signInWithRedirect,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from 'firebase/auth';
@@ -50,19 +51,38 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   };
 
   const handleGoogleSignIn = () => {
-    // Call signInWithPopup synchronously upon tap
-    const authPromise = signInWithPopup(auth, googleProvider);
-
     setErrorMsg('');
     setLoading(true);
 
-    authPromise
+    const isMobile =
+      typeof window !== 'undefined' &&
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+
+    if (isMobile) {
+      // On mobile devices, redirect directly to Google accounts so popup blockers never interfere
+      signInWithRedirect(auth, googleProvider).catch((e: any) => {
+        console.error('Google redirect error:', e);
+        setErrorMsg(translateAuthError(e.code || ''));
+        setLoading(false);
+      });
+      return;
+    }
+
+    // On desktop, use fast popup window
+    signInWithPopup(auth, googleProvider)
       .then(() => {
         onClose();
       })
       .catch((e: any) => {
         console.error('Google sign in error:', e);
-        if (e.code !== 'auth/popup-closed-by-user') {
+        if (e.code === 'auth/popup-blocked') {
+          // If popup is blocked on desktop, fallback to redirect
+          signInWithRedirect(auth, googleProvider).catch((redirectErr: any) => {
+            setErrorMsg(translateAuthError(redirectErr.code || ''));
+          });
+        } else if (e.code !== 'auth/popup-closed-by-user') {
           setErrorMsg(translateAuthError(e.code || ''));
         }
       })
