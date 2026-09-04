@@ -44,7 +44,6 @@ export default function Home() {
   const [isIOS, setIsIOS] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [canInstall, setCanInstall] = useState(false);
-  const [authDebug, setAuthDebug] = useState<string>('');
 
   const [activeTab, setActiveTab] = useState<'settings' | 'report' | 'eshel'>('settings');
 
@@ -142,22 +141,15 @@ export default function Home() {
       }
     };
 
-    setAuthDebug('בודק תוצאת התחברות...');
-
     // 1. Process redirect sign-in result (for mobile redirect fallback)
     getRedirectResult(auth)
       .then(async (result) => {
         if (result?.user) {
-          setAuthDebug(`התחברות הצליחה! משתמש: ${result.user.email}`);
           await handleUserChange(result.user);
-        } else {
-          setAuthDebug((prev) => `${prev} | getRedirectResult: null (auth.currentUser: ${auth.currentUser?.email || 'null'})`);
         }
       })
       .catch((err) => {
         console.error('Redirect sign-in error:', err);
-        setAuthDebug(`שגיאת התחברות: ${err.code || err.message}`);
-        alert(`שגיאת התחברות מגוגל: ${err.code}\n${err.message}`);
       });
 
     // 2. Immediately load from localStorage on initial render before auth is resolved
@@ -172,7 +164,6 @@ export default function Home() {
 
     // 3. Listen to Firebase auth changes and load cloud settings
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setAuthDebug((prev) => `${prev} | authChanged: ${currentUser?.email || 'null'}`);
       await handleUserChange(currentUser);
     });
     return () => unsubscribe();
@@ -461,11 +452,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {authDebug && (
-        <div className="bg-amber-400 text-neutral-950 font-mono text-[11px] p-2 text-center border-b border-amber-500 font-bold z-50 break-all select-all">
-          {authDebug}
-        </div>
-      )}
       {/* App Header */}
       <Header
         user={user}
