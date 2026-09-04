@@ -16,6 +16,8 @@ import {
   Check,
   CheckSquare,
   Edit3,
+  HelpCircle,
+  Sparkles,
 } from 'lucide-react';
 
 interface ReportTabProps {
@@ -30,7 +32,7 @@ interface ReportTabProps {
   onExportPdf: () => void;
   onExportExcel: () => void;
   onRequestSignature: () => void;
-  hasPrincipalSig: boolean;
+  hasPrincipalSig?: boolean;
   principalSigImg?: string;
 }
 
@@ -54,6 +56,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
   // Multi-day selection state
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   // Modal state: list of days being edited (single day or multiple days)
   const [modalDays, setModalDays] = useState<number[] | null>(null);
@@ -66,6 +69,15 @@ export const ReportTab: React.FC<ReportTabProps> = ({
   });
 
   const daysInMonth = useMemo(() => new Date(year, month + 1, 0).getDate(), [year, month]);
+
+  const workingDays = useMemo(() => {
+    const days: number[] = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(year, month, d);
+      if (date.getDay() !== 6) days.push(d);
+    }
+    return days;
+  }, [year, month, daysInMonth]);
 
   // Handle cell input change in table view
   const handleCellChange = (day: number, field: keyof DayReportEntry, value: string) => {
@@ -312,6 +324,88 @@ export const ReportTab: React.FC<ReportTabProps> = ({
         </div>
       </div>
 
+      {/* Universal Multi-Day Batch Edit Toolbar & Instructions */}
+      <div className="bg-white rounded-2xl p-3 md:p-4 shadow-xs border border-neutral-200 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => {
+              const nextMode = !isMultiSelectMode;
+              setIsMultiSelectMode(nextMode);
+              if (!nextMode) setSelectedDays([]);
+            }}
+            className={`flex items-center gap-1.5 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-lg border transition cursor-pointer ${
+              isMultiSelectMode
+                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                : 'bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-100'
+            }`}
+          >
+            <CheckSquare className="w-4 h-4" />
+            <span>{isMultiSelectMode ? 'מצב בחירה מרובה פעיל ✓' : 'בחירת מספר ימים'}</span>
+          </button>
+
+          {/* Instructions Button (Modal trigger) */}
+          <button
+            type="button"
+            onClick={() => setIsGuideOpen(true)}
+            className="flex items-center gap-1.5 text-xs md:text-sm font-semibold text-neutral-700 hover:text-blue-600 bg-neutral-50 hover:bg-neutral-100 border border-neutral-300 rounded-lg px-3 py-1.5 transition cursor-pointer"
+            title="איך למלא ערך זהה במספר ימים במקביל?"
+          >
+            <HelpCircle className="w-4 h-4 text-blue-600" />
+            <span>הוראות למילוי מהיר</span>
+          </button>
+
+          {isMultiSelectMode && (
+            <div className="flex items-center gap-1 flex-wrap text-xs">
+              <span className="text-neutral-500 font-medium mr-1">בחירה מהירה:</span>
+              {[0, 1, 2, 3, 4, 5].map((w) => (
+                <button
+                  key={w}
+                  type="button"
+                  onClick={() => selectAllWeekday(w)}
+                  className="px-2 py-1 bg-white border border-neutral-300 hover:bg-neutral-100 rounded text-neutral-700 font-medium cursor-pointer transition"
+                >
+                  ימי {DAY_NAMES[w]}&apos;
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={selectAllWorkdays}
+                className="px-2 py-1 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 rounded font-semibold cursor-pointer transition"
+              >
+                כל החודש
+              </button>
+              {selectedDays.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedDays([])}
+                  className="px-2 py-1 bg-neutral-200 hover:bg-neutral-300 text-neutral-700 rounded font-medium cursor-pointer transition"
+                >
+                  נקה בחירה
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* If days are selected: Action buttons */}
+        {selectedDays.length > 0 && (
+          <div className="flex items-center gap-2 animate-in fade-in duration-150">
+            <span className="text-xs font-bold text-blue-800 bg-blue-100 px-2.5 py-1 rounded-full">
+              נבחרו {selectedDays.length} ימים
+            </span>
+            <button
+              type="button"
+              onClick={openBatchModal}
+              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-bold px-3.5 py-1.5 rounded-lg shadow-xs transition active:scale-95 cursor-pointer"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>ערוך ימים אלו במקביל</span>
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Main Content: Table or Calendar */}
       {viewMode === 'table' ? (
         <div className="bg-white rounded-2xl shadow-xs border border-neutral-200 overflow-hidden">
@@ -319,6 +413,20 @@ export const ReportTab: React.FC<ReportTabProps> = ({
             <table className="w-full text-sm text-right border-collapse">
               <thead>
                 <tr className="bg-neutral-900 text-white font-bold text-xs md:text-sm">
+                  {isMultiSelectMode && (
+                    <th className="p-2.5 text-center w-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedDays.length > 0 && selectedDays.length === workingDays.length}
+                        onChange={(e) => {
+                          if (e.target.checked) selectAllWorkdays();
+                          else setSelectedDays([]);
+                        }}
+                        className="w-4 h-4 text-blue-600 rounded border-neutral-400 focus:ring-blue-500 cursor-pointer"
+                        title="בחר / בטל את כל ימי החודש"
+                      />
+                    </th>
+                  )}
                   <th className="p-2.5 text-center w-12">יום</th>
                   <th className="p-2.5 text-center w-12">בשבוע</th>
                   <th className="p-2.5 w-24 text-center">שעות היעדרות</th>
@@ -338,15 +446,38 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                   const vacation = getVacationLabel(date);
                   const entry = report.days[day] || {};
                   const isWeekendEnd = weekday === 5; // Friday separator
+                  const isSelected = selectedDays.includes(day);
 
                   return (
                     <tr
                       key={day}
                       className={`hover:bg-neutral-50 transition ${
-                        vacation ? 'bg-amber-50/50 text-amber-900 font-medium' : ''
+                        isSelected
+                          ? 'bg-blue-50/85 border-r-4 border-r-blue-600 font-medium'
+                          : vacation
+                          ? 'bg-amber-50/50 text-amber-900 font-medium'
+                          : ''
                       } ${isWeekendEnd ? 'border-b-2 border-neutral-300' : ''}`}
                     >
-                      <td className="p-2 text-center font-bold text-neutral-800">{day}</td>
+                      {isMultiSelectMode && (
+                        <td className="p-2 text-center">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleDaySelection(day)}
+                            className="w-4 h-4 text-blue-600 rounded border-neutral-300 focus:ring-blue-500 cursor-pointer"
+                          />
+                        </td>
+                      )}
+                      <td
+                        onClick={() => isMultiSelectMode && toggleDaySelection(day)}
+                        className={`p-2 text-center font-bold text-neutral-800 ${
+                          isMultiSelectMode ? 'cursor-pointer hover:text-blue-600 select-none' : ''
+                        }`}
+                        title={isMultiSelectMode ? 'לחץ לבחירה/ביטול' : undefined}
+                      >
+                        {day}
+                      </td>
                       <td className="p-2 text-center font-semibold text-neutral-600">
                         {DAY_NAMES[weekday]}
                       </td>
@@ -403,7 +534,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
               </tbody>
               <tfoot>
                 <tr className="bg-neutral-100 font-bold text-neutral-900 border-t-2 border-neutral-300">
-                  <td colSpan={2} className="p-3 text-right">
+                  <td colSpan={isMultiSelectMode ? 3 : 2} className="p-3 text-right">
                     סה&quot;כ שעות:
                   </td>
                   <td className="p-3 text-center text-blue-700 font-extrabold">{totalHours}</td>
@@ -419,76 +550,6 @@ export const ReportTab: React.FC<ReportTabProps> = ({
       ) : (
         /* Calendar View with Multi-Day Selection */
         <div className="bg-white rounded-2xl p-4 md:p-6 shadow-xs border border-neutral-200 space-y-4">
-          {/* Multi-Select Toolbar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-neutral-50 p-3 rounded-xl border border-neutral-200">
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsMultiSelectMode(!isMultiSelectMode);
-                  if (isMultiSelectMode) setSelectedDays([]);
-                }}
-                className={`flex items-center gap-1.5 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-lg border transition cursor-pointer ${
-                  isMultiSelectMode
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                    : 'bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-100'
-                }`}
-              >
-                <CheckSquare className="w-4 h-4" />
-                <span>{isMultiSelectMode ? 'מצב בחירה מרובה פעיל ✓' : 'בחירת מספר ימים'}</span>
-              </button>
-
-              {isMultiSelectMode && (
-                <div className="flex items-center gap-1 flex-wrap text-xs">
-                  <span className="text-neutral-500 font-medium mr-1">בחר ימים:</span>
-                  {[0, 1, 2, 3, 4, 5].map((w) => (
-                    <button
-                      key={w}
-                      type="button"
-                      onClick={() => selectAllWeekday(w)}
-                      className="px-2 py-1 bg-white border border-neutral-300 hover:bg-neutral-100 rounded text-neutral-700 font-medium cursor-pointer transition"
-                    >
-                      ימי {DAY_NAMES[w]}&apos;
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={selectAllWorkdays}
-                    className="px-2 py-1 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 rounded font-semibold cursor-pointer transition"
-                  >
-                    כל החודש
-                  </button>
-                  {selectedDays.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedDays([])}
-                      className="px-2 py-1 bg-neutral-200 hover:bg-neutral-300 text-neutral-700 rounded font-medium cursor-pointer transition"
-                    >
-                      נקה בחירה
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* If days are selected: Action buttons */}
-            {selectedDays.length > 0 && (
-              <div className="flex items-center gap-2 animate-in fade-in duration-150">
-                <span className="text-xs font-bold text-blue-800 bg-blue-100 px-2.5 py-1 rounded-full">
-                  נבחרו {selectedDays.length} ימים
-                </span>
-                <button
-                  type="button"
-                  onClick={openBatchModal}
-                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-bold px-3.5 py-1.5 rounded-lg shadow transition active:scale-95 cursor-pointer"
-                >
-                  <Edit3 className="w-3.5 h-3.5" />
-                  <span>ערוך ימים אלו במקביל</span>
-                </button>
-              </div>
-            )}
-          </div>
-
           {/* Calendar Grid */}
           <div className="grid grid-cols-6 gap-2 md:gap-3 text-center">
             {['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'].map((name, i) => (
@@ -806,6 +867,116 @@ export const ReportTab: React.FC<ReportTabProps> = ({
           )}
         </div>
       </div>
+
+      {/* Multi-Day Instructions Modal (Shown only on clicking the button) */}
+      {isGuideOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsGuideOpen(false);
+          }}
+        >
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border border-neutral-200 animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="bg-neutral-900 text-white px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-blue-600/20 text-blue-400 rounded-lg">
+                  <HelpCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold">הוראות: מילוי ערך זהה במספר ימים</h3>
+                  <p className="text-xs text-neutral-400">עריכה מרוכזת של מספר ימים במקביל (בטבלה או בלוח השנה)</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsGuideOpen(false)}
+                className="text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-neutral-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-4 text-neutral-700 text-sm max-h-[75vh] overflow-y-auto">
+              <div className="space-y-3.5">
+                {/* Step 1 */}
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">
+                    1
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-neutral-900 text-sm">הפעלת מצב בחירה מרובה</h4>
+                    <p className="text-xs text-neutral-600 mt-0.5 leading-relaxed">
+                      לחצו על כפתור <strong>&quot;בחירת מספר ימים&quot;</strong> בסרגל הכלים שמעל הטבלה ולוח השנה.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 2 */}
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">
+                    2
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-neutral-900 text-sm">בחירת הימים הרצויים</h4>
+                    <ul className="text-xs text-neutral-600 mt-0.5 space-y-1 list-disc list-inside leading-relaxed">
+                      <li><strong>בתצוגת טבלה:</strong> סמנו את תיבות הסימון לצד הימים, או לחצו על מספר היום.</li>
+                      <li><strong>בתצוגת לוח שנה:</strong> לחצו ישירות על משבצות הימים שברצונכם לעדכן.</li>
+                      <li><strong>בחירה מהירה:</strong> השתמשו בכפתורים המהירים (למשל: <em>ימי א&apos;</em>, <em>ימי ב&apos;</em>, או <em>כל החודש</em>).</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">
+                    3
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-neutral-900 text-sm">פתיחת חלון העריכה המקבילה</h4>
+                    <p className="text-xs text-neutral-600 mt-0.5 leading-relaxed">
+                      לחצו על הכפתור הכחול <strong>&quot;ערוך ימים אלו במקביל&quot;</strong> שיופיע בסרגל ברגע שנבחרו ימים.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 4 */}
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">
+                    4
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-neutral-900 text-sm">הזנת הערכים ושמירה</h4>
+                    <p className="text-xs text-neutral-600 mt-0.5 leading-relaxed">
+                      הקלידו את הערך המשותף הרצוי (למשל: תיאור הפעולה <em>&quot;מערכת&quot;</em>, שעות היעדרות, או כיתה) ולחצו <strong>&quot;החל על כל הימים שנבחרו&quot;</strong>. כל הימים יתמלאו בבת אחת!
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pro Tip */}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 flex items-start gap-2">
+                <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <span>
+                  <strong>טיפ שימושי:</strong> שדות שתשאירו ריקים בטופס העריכה לא ידרסו ולא ימחקו ערכים שכבר קיימים באותם ימים.
+                </span>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-neutral-50 px-6 py-3 border-t border-neutral-200 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsGuideOpen(false)}
+                className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs md:text-sm px-4 py-2 rounded-xl transition cursor-pointer"
+              >
+                הבנתי, תודה!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
