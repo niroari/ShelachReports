@@ -1,7 +1,7 @@
 // components/SettingsTab.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TeacherSettings } from '../lib/types';
 import { Save, Check } from 'lucide-react';
 
@@ -14,6 +14,11 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ settings, onSave }) =>
   const [formData, setFormData] = useState<TeacherSettings>(settings);
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  // Sync internal form data whenever settings prop updates (e.g., when loaded from Firestore or localStorage)
+  useEffect(() => {
+    setFormData(settings);
+  }, [settings]);
 
   const handleChange = (field: keyof TeacherSettings, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

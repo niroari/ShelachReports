@@ -114,8 +114,20 @@ export default function Home() {
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
   }, []);
 
-  // Auth State Listener
+  // Auth State Listener & Initial Settings Load
   useEffect(() => {
+    // 1. Immediately load from localStorage on initial render before auth is resolved
+    getSettings().then((localSettings) => {
+      setSettings((prev) => {
+        // Only set if prev is empty/default
+        if (!prev.firstName && !prev.lastName && !prev.idNumber) {
+          return localSettings;
+        }
+        return prev;
+      });
+    });
+
+    // 2. Listen to Firebase auth changes and load cloud settings
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       const loadedSettings = await getSettings(currentUser?.uid);
