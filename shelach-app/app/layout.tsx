@@ -31,7 +31,6 @@ export default function RootLayout({
   return (
     <html lang="he" dir="rtl">
       <head>
-        <script src="https://accounts.google.com/gsi/client" async defer></script>
         <script defer src="/_vercel/insights/script.js"></script>
       </head>
       <body className="bg-[#f0f2f5] text-neutral-900 min-h-screen antialiased selection:bg-blue-100 selection:text-blue-900">
