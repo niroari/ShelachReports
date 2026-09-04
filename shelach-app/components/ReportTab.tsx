@@ -34,6 +34,7 @@ interface ReportTabProps {
   onRequestSignature: () => void;
   hasPrincipalSig?: boolean;
   principalSigImg?: string;
+  onDeletePrincipalSig?: () => void;
 }
 
 export const ReportTab: React.FC<ReportTabProps> = ({
@@ -50,6 +51,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
   onRequestSignature,
   hasPrincipalSig,
   principalSigImg,
+  onDeletePrincipalSig,
 }) => {
   const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table');
 
@@ -860,9 +862,22 @@ export const ReportTab: React.FC<ReportTabProps> = ({
             className="w-full text-sm px-3 py-2 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
           />
           {hasPrincipalSig && (
-            <div className="mt-3 bg-purple-50 border border-purple-200 rounded-xl p-2.5 text-xs text-purple-800 flex items-center gap-2">
-              <Check className="w-4 h-4 text-purple-600 shrink-0" />
-              <span>דוח זה כולל חתימת מנהל/ת דיגיטלית שתתווסף ל-PDF</span>
+            <div className="mt-3 bg-purple-50 border border-purple-200 rounded-xl p-2.5 text-xs text-purple-800 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-purple-600 shrink-0" />
+                <span>דוח זה כולל חתימת מנהל/ת דיגיטלית שתתווסף ל-PDF</span>
+              </div>
+              {onDeletePrincipalSig && (
+                <button
+                  type="button"
+                  onClick={onDeletePrincipalSig}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-100/70 px-2.5 py-1 rounded-lg transition text-xs font-semibold flex items-center gap-1 cursor-pointer shrink-0"
+                  title="מחק חתימת מנהל/ת"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>מחק חתימה</span>
+                </button>
+              )}
             </div>
           )}
         </div>

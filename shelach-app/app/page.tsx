@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import {
   TeacherSettings,
@@ -232,8 +232,28 @@ export default function Home() {
     [year, month, user]
   );
 
+  // Delete Principal Signature
+  const handleDeletePrincipalSig = async (showConfirm = true) => {
+    if (showConfirm && !confirm('האם אתה בטוח שברצונך למחוק את חתימת המנהל/ת עבור חודש זה?')) {
+      return;
+    }
+
+    setSignDocStatus('pending');
+    setPrincipalSigImg(undefined);
+
+    if (user) {
+      const docId = `${user.uid}_${year}_${month}`;
+      try {
+        const docRef = doc(db, 'signature_requests', docId);
+        await deleteDoc(docRef);
+      } catch (e) {
+        console.error('Error deleting signature request:', e);
+      }
+    }
+  };
+
   // Clear Report
-  const handleClearReport = () => {
+  const handleClearReport = async () => {
     if (confirm('האם אתה בטוח שברצונך למחוק את כל נתוני החודש הנוכחי?')) {
       const empty: MonthlyReportData = {
         days: {},
@@ -243,6 +263,8 @@ export default function Home() {
       };
       setReport(empty);
       saveMonthlyReport(year, month, empty, user?.uid);
+      // Also delete any existing principal signature for this month
+      await handleDeletePrincipalSig(false);
     }
   };
 
@@ -465,6 +487,7 @@ export default function Home() {
             onRequestSignature={handleRequestSignature}
             hasPrincipalSig={signDocStatus === 'signed'}
             principalSigImg={principalSigImg}
+            onDeletePrincipalSig={handleDeletePrincipalSig}
           />
         )}
         {activeTab === 'eshel' && (
@@ -495,6 +518,7 @@ export default function Home() {
         teacherName={`${settings.firstName} ${settings.lastName}`}
         schoolName={settings.schoolName}
         monthName={MONTH_NAMES[month]}
+        onDeletePrincipalSig={handleDeletePrincipalSig}
       />
 
       <PdfPreviewModal

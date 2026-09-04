@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Copy, Check, Send } from 'lucide-react';
+import { X, Copy, Check, Send, Trash2 } from 'lucide-react';
 
 interface SignRequestModalProps {
   isOpen: boolean;
@@ -13,6 +13,7 @@ interface SignRequestModalProps {
   teacherName: string;
   schoolName: string;
   monthName: string;
+  onDeletePrincipalSig?: () => void;
 }
 
 export const SignRequestModal: React.FC<SignRequestModalProps> = ({
@@ -24,6 +25,7 @@ export const SignRequestModal: React.FC<SignRequestModalProps> = ({
   teacherName,
   schoolName,
   monthName,
+  onDeletePrincipalSig,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -83,6 +85,19 @@ export const SignRequestModal: React.FC<SignRequestModalProps> = ({
               <p className="text-xs text-emerald-600">
                 החתימה תופיע באופן אוטומטי בעת ייצוא קובץ ה-PDF.
               </p>
+              {onDeletePrincipalSig && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onDeletePrincipalSig();
+                    onClose();
+                  }}
+                  className="mt-2 flex items-center justify-center gap-1.5 w-full text-red-600 hover:text-red-700 bg-white hover:bg-red-50 border border-red-200 text-xs font-semibold py-2 px-3 rounded-xl transition cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>מחק חתימת מנהל/ת ופתח לחתימה מחדש</span>
+                </button>
+              )}
             </div>
           ) : (
             <p className="text-sm text-neutral-600 leading-relaxed">
