@@ -94,6 +94,10 @@ export default function Home() {
 
   // Initialize PWA and OS detection
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hostname === 'shelach-reports.web.app') {
+      window.location.replace(`https://shelach-reports.firebaseapp.com${window.location.pathname}${window.location.search}`);
+      return;
+    }
     const isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     setIsIOS(isIosDevice);
 
