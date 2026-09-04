@@ -7,6 +7,7 @@ import {
   signInWithRedirect,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
 import { X, Lock, Mail } from 'lucide-react';
@@ -23,6 +24,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [resetSent, setResetSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -119,6 +121,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  const handlePasswordReset = async () => {
+    if (!email.trim()) {
+      setErrorMsg('יש להזין כתובת אימייל כדי לקבל קישור להגדרת סיסמה.');
+      return;
+    }
+    setErrorMsg('');
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      setResetSent(true);
+    } catch (e: any) {
+      console.error('Password reset error:', e);
+      setErrorMsg(translateAuthError(e.code || ''));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs select-none"
@@ -172,6 +192,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         <div className="p-6">
+          {resetSent && (
+            <div className="bg-emerald-50 text-emerald-800 text-xs p-3 rounded-lg border border-emerald-200 mb-4 font-medium leading-relaxed">
+              נשלח קישור להגדרת סיסמה לכתובת <strong>{email}</strong>!
+              <br />
+              בדוק את תיבת המייל שלך (כולל תיקיית ספאם/קידומי מכירות), לחץ על הקישור וקבע סיסמה. לאחר מכן תוכל להתחבר כאן רגיל עם האימייל והסיסמה בכל מכשיר.
+            </div>
+          )}
+
           {errorMsg && (
             <div className="bg-red-50 text-red-700 text-xs p-3 rounded-lg border border-red-200 mb-4 font-medium leading-relaxed">
               <p>{errorMsg}</p>
@@ -185,6 +213,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   className="mt-2 text-blue-600 underline font-semibold cursor-pointer block hover:text-blue-800"
                 >
                   מעבר להתחברות עם אימייל וסיסמה &larr;
+                </button>
+              )}
+              {tab === 'email' && (
+                <button
+                  type="button"
+                  onClick={handlePasswordReset}
+                  className="mt-2 text-blue-600 underline font-semibold cursor-pointer block hover:text-blue-800"
+                >
+                  נרשמת בעבר עם Google או שכחת סיסמה? לחץ כאן לקבלת קישור להגדרת סיסמה &larr;
                 </button>
               )}
             </div>
@@ -292,19 +329,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 {loading ? 'טוען...' : emailMode === 'login' ? 'כניסה' : 'צור חשבון חדש'}
               </button>
 
-              <div className="text-center pt-2">
+              <div className="flex flex-col items-center gap-2.5 pt-2 text-xs">
                 <button
                   type="button"
                   onClick={() => {
                     setEmailMode(emailMode === 'login' ? 'register' : 'login');
                     setErrorMsg('');
+                    setResetSent(false);
                   }}
-                  className="text-xs text-blue-600 hover:underline font-medium cursor-pointer"
+                  className="text-blue-600 hover:underline font-medium cursor-pointer"
                 >
                   {emailMode === 'login'
                     ? 'אין לך חשבון? הירשם עכשיו'
                     : 'כבר רשום? היכנס כאן'}
                 </button>
+
+                {emailMode === 'login' && (
+                  <button
+                    type="button"
+                    onClick={handlePasswordReset}
+                    className="text-neutral-500 hover:text-neutral-800 underline cursor-pointer"
+                  >
+                    שכחת סיסמה / נרשמת דרך Google?
+                  </button>
+                )}
               </div>
             </form>
           )}
