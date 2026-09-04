@@ -49,44 +49,35 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = () => {
+    // 1. Call signInWithPopup SYNCHRONOUSLY at the direct user tap event.
+    // This preserves the browser's UserActivation token so mobile Chrome and Safari won't block the popup.
+    const authPromise = signInWithPopup(auth, googleProvider);
+
     setErrorMsg('');
     setLoading(true);
 
-    const isMobile =
-      typeof window !== 'undefined' &&
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-      );
-
-    if (isMobile) {
-      try {
-        await signInWithRedirect(auth, googleProvider);
-        return;
-      } catch (e: any) {
-        setErrorMsg(translateAuthError(e.code || ''));
-        setLoading(false);
-        return;
-      }
-    }
-
-    try {
-      await signInWithPopup(auth, googleProvider);
-      onClose();
-    } catch (e: any) {
-      if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request') {
-        try {
-          await signInWithRedirect(auth, googleProvider);
-          return;
-        } catch (redirectError: any) {
-          setErrorMsg(translateAuthError(redirectError.code || ''));
+    authPromise
+      .then(() => {
+        onClose();
+      })
+      .catch(async (e: any) => {
+        console.error('Google sign in error:', e);
+        if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request') {
+          // If popup is blocked by strict browser settings, fallback to redirect
+          try {
+            await signInWithRedirect(auth, googleProvider);
+            return;
+          } catch (redirectError: any) {
+            setErrorMsg(translateAuthError(redirectError.code || ''));
+          }
+        } else if (e.code !== 'auth/popup-closed-by-user') {
+          setErrorMsg(translateAuthError(e.code || ''));
         }
-      } else if (e.code !== 'auth/popup-closed-by-user') {
-        setErrorMsg(translateAuthError(e.code || ''));
-      }
-    } finally {
-      setLoading(false);
-    }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {

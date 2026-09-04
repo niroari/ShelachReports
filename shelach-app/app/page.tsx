@@ -116,21 +116,41 @@ export default function Home() {
 
   // Auth State Listener & Initial Settings Load
   useEffect(() => {
-    // Process redirect sign-in result (mobile flow)
+    const handleUserChange = async (currentUser: User | null) => {
+      setUser(currentUser);
+      if (currentUser) {
+        try {
+          const loadedSettings = await getSettings(currentUser.uid);
+          setSettings(loadedSettings);
+        } catch (e) {
+          console.error('Error loading cloud settings:', e);
+        }
+      } else {
+        // Only load local settings if no user is signed in
+        const local = await getSettings();
+        setSettings((prev) => {
+          if (!prev.firstName && !prev.lastName && !prev.idNumber) {
+            return local;
+          }
+          return prev;
+        });
+      }
+    };
+
+    // 1. Process redirect sign-in result (for mobile redirect fallback)
     getRedirectResult(auth)
-      .then((result) => {
+      .then(async (result) => {
         if (result?.user) {
-          setUser(result.user);
+          await handleUserChange(result.user);
         }
       })
       .catch((err) => {
         console.error('Redirect sign-in error:', err);
       });
 
-    // 1. Immediately load from localStorage on initial render before auth is resolved
+    // 2. Immediately load from localStorage on initial render before auth is resolved
     getSettings().then((localSettings) => {
       setSettings((prev) => {
-        // Only set if prev is empty/default
         if (!prev.firstName && !prev.lastName && !prev.idNumber) {
           return localSettings;
         }
@@ -138,11 +158,9 @@ export default function Home() {
       });
     });
 
-    // 2. Listen to Firebase auth changes and load cloud settings
+    // 3. Listen to Firebase auth changes and load cloud settings
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      const loadedSettings = await getSettings(currentUser?.uid);
-      setSettings(loadedSettings);
+      await handleUserChange(currentUser);
     });
     return () => unsubscribe();
   }, []);
