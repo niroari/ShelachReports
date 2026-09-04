@@ -1,6 +1,8 @@
 // app/manifest.ts
 import { MetadataRoute } from 'next';
 
+export const dynamic = 'force-static';
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'דוחות של"ח',

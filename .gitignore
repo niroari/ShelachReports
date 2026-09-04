@@ -7,3 +7,7 @@ PROJECT.md
 memory/
 shelach-app/node_modules/
 shelach-app/.next/
+shelach-app/out/
+.firebase/
+.DS_Store
+
