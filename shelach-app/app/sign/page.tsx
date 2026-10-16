@@ -68,6 +68,33 @@ function PrincipalSignContent() {
         signedAt: serverTimestamp(),
       });
       setSuccess(true);
+
+      // Dispatch notification email to teacher if requested
+      if (docData?.notifyOnSign && docData?.notifyEmail) {
+        try {
+          fetch(`https://formsubmit.co/ajax/${encodeURIComponent(docData.notifyEmail.trim())}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+              _subject: `דוח של"ח לחודש ${MONTH_NAMES[docData.month]} נחתם ע"י המנהל/ת!`,
+              _template: 'table',
+              "שם המורה": docData.teacherName,
+              "בית ספר": docData.schoolName,
+              "חודש": MONTH_NAMES[docData.month],
+              "שנה": docData.year,
+              "סטטוס": "נחתם בהצלחה ע\"י המנהל/ת ✓",
+              "הודעה": "המנהל/ת חתם/ה כעת על דוח הפעילות והנוכחות החודשי שלך. החתימה עודכנה במערכת ותופיע בייצוא ה-PDF.",
+            }),
+          }).catch((err) => {
+            console.error('Error dispatching notification email:', err);
+          });
+        } catch (emailErr) {
+          console.error('Failed to trigger email notification:', emailErr);
+        }
+      }
     } catch (e: any) {
       alert('שגיאה בשליחת החתימה: ' + e.message);
     } finally {

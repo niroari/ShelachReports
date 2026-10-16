@@ -70,6 +70,8 @@ export interface SignatureRequestDoc {
   status: 'pending' | 'signed';
   reportSnapshot: { [day: string]: DayReportEntry };
   principalSignature?: string;
+  notifyOnSign?: boolean;
+  notifyEmail?: string;
   createdAt: any;
   signedAt?: any;
 }

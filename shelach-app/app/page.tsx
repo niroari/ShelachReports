@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
-import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import {
   TeacherSettings,
@@ -86,6 +86,9 @@ export default function Home() {
   const [signDocStatus, setSignDocStatus] = useState<'pending' | 'signed'>('pending');
   const [principalSigImg, setPrincipalSigImg] = useState<string | undefined>();
   const [signUrl, setSignUrl] = useState('');
+  const [notifyOnSign, setNotifyOnSign] = useState<boolean>(true);
+  const [notifyEmail, setNotifyEmail] = useState<string>('');
+  const [signedBanner, setSignedBanner] = useState<string | null>(null);
 
   // PDF Preview Modal State
   const [pdfPreviewImg, setPdfPreviewImg] = useState<string | null>(null);
@@ -208,32 +211,57 @@ export default function Home() {
     fetchEshel();
   }, [month, year, user]);
 
-  // Check Principal Signature status for current month/year
+  // Listen to Principal Signature status for current month/year in real-time
   useEffect(() => {
     if (!user) {
       setSignDocStatus('pending');
       setPrincipalSigImg(undefined);
+      setNotifyOnSign(true);
+      setNotifyEmail('');
       return;
     }
 
     const docId = `${user.uid}_${year}_${month}`;
-    const checkSign = async () => {
-      try {
-        const docRef = doc(db, 'signature_requests', docId);
-        const snap = await getDoc(docRef);
+    const docRef = doc(db, 'signature_requests', docId);
+
+    // Default notification email to user email if not set
+    setNotifyEmail((prev) => prev || user.email || '');
+
+    const unsubscribe = onSnapshot(
+      docRef,
+      (snap) => {
         if (snap.exists()) {
           const d = snap.data() as SignatureRequestDoc;
-          setSignDocStatus(d.status);
+
+          setSignDocStatus((prevStatus) => {
+            if (prevStatus === 'pending' && d.status === 'signed') {
+              setSignedBanner(`הדוח לחודש ${MONTH_NAMES[month]} נחתם כעת ע"י המנהל/ת! 🎉`);
+            }
+            return d.status;
+          });
+
           setPrincipalSigImg(d.principalSignature);
+          if (typeof d.notifyOnSign === 'boolean') {
+            setNotifyOnSign(d.notifyOnSign);
+          }
+          if (d.notifyEmail) {
+            setNotifyEmail(d.notifyEmail);
+          } else if (user.email) {
+            setNotifyEmail(user.email);
+          }
         } else {
           setSignDocStatus('pending');
           setPrincipalSigImg(undefined);
+          setNotifyOnSign(true);
+          setNotifyEmail(user.email || '');
         }
-      } catch (e) {
-        console.error('Error checking signature request:', e);
+      },
+      (e) => {
+        console.error('Error listening to signature request:', e);
       }
-    };
-    checkSign();
+    );
+
+    return () => unsubscribe();
   }, [user, year, month]);
 
   // Save Settings handler
@@ -499,6 +527,27 @@ export default function Home() {
     }
   };
 
+  // Update notification preference
+  const handleUpdateNotificationPreference = async (enabled: boolean, email: string) => {
+    setNotifyOnSign(enabled);
+    setNotifyEmail(email);
+    if (!user) return;
+    const docId = `${user.uid}_${year}_${month}`;
+    try {
+      const docRef = doc(db, 'signature_requests', docId);
+      await setDoc(
+        docRef,
+        {
+          notifyOnSign: enabled,
+          notifyEmail: email.trim(),
+        },
+        { merge: true }
+      );
+    } catch (e) {
+      console.error('Error saving notification preferences:', e);
+    }
+  };
+
   // Create Principal Signature Link
   const handleRequestSignature = async () => {
     if (!user) {
@@ -522,6 +571,8 @@ export default function Home() {
           year,
           status: signDocStatus,
           reportSnapshot: report.days,
+          notifyOnSign: notifyOnSign ?? true,
+          notifyEmail: notifyEmail || user.email || '',
           createdAt: serverTimestamp(),
         },
         { merge: true }
@@ -557,6 +608,22 @@ export default function Home() {
         onInstallApp={handleInstallApp}
         canInstall={canInstall}
       />
+
+      {/* Real-time Signed Alert Banner */}
+      {signedBanner && (
+        <div className="bg-emerald-600 text-white px-4 py-2.5 flex items-center justify-between text-xs sm:text-sm font-semibold shadow-md animate-in slide-in-from-top duration-300">
+          <div className="flex items-center gap-2 max-w-6xl mx-auto flex-1">
+            <span className="text-base">✍</span>
+            <span>{signedBanner}</span>
+          </div>
+          <button
+            onClick={() => setSignedBanner(null)}
+            className="text-white/80 hover:text-white p-1 rounded-lg transition cursor-pointer text-sm"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Navigation Tabs */}
       <div className="bg-white border-b border-neutral-200 sticky top-0 z-30 shadow-2xs">
@@ -649,6 +716,9 @@ export default function Home() {
         teacherName={`${settings.firstName} ${settings.lastName}`}
         schoolName={settings.schoolName}
         monthName={MONTH_NAMES[month]}
+        notifyOnSign={notifyOnSign}
+        notifyEmail={notifyEmail}
+        onUpdateNotification={handleUpdateNotificationPreference}
         onDeletePrincipalSig={handleDeletePrincipalSig}
       />
 

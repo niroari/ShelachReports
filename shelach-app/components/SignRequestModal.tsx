@@ -1,8 +1,8 @@
 // components/SignRequestModal.tsx
 'use client';
 
-import React, { useState } from 'react';
-import { X, Copy, Check, Send, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Copy, Check, Send, Trash2, Bell, Mail } from 'lucide-react';
 
 interface SignRequestModalProps {
   isOpen: boolean;
@@ -13,6 +13,9 @@ interface SignRequestModalProps {
   teacherName: string;
   schoolName: string;
   monthName: string;
+  notifyOnSign?: boolean;
+  notifyEmail?: string;
+  onUpdateNotification?: (notifyOnSign: boolean, notifyEmail: string) => void;
   onDeletePrincipalSig?: () => void;
 }
 
@@ -25,9 +28,41 @@ export const SignRequestModal: React.FC<SignRequestModalProps> = ({
   teacherName,
   schoolName,
   monthName,
+  notifyOnSign = true,
+  notifyEmail = '',
+  onUpdateNotification,
   onDeletePrincipalSig,
 }) => {
   const [copied, setCopied] = useState(false);
+  const [emailVal, setEmailVal] = useState(notifyEmail);
+  const [notifyChecked, setNotifyChecked] = useState(notifyOnSign);
+  const [savedFeedback, setSavedFeedback] = useState(false);
+
+  useEffect(() => {
+    setEmailVal(notifyEmail);
+  }, [notifyEmail]);
+
+  useEffect(() => {
+    setNotifyChecked(notifyOnSign);
+  }, [notifyOnSign]);
+
+  const handleToggleNotify = (checked: boolean) => {
+    setNotifyChecked(checked);
+    if (onUpdateNotification) {
+      onUpdateNotification(checked, emailVal);
+      setSavedFeedback(true);
+      setTimeout(() => setSavedFeedback(false), 2000);
+    }
+  };
+
+  const handleEmailChange = (val: string) => {
+    setEmailVal(val);
+    if (onUpdateNotification && notifyChecked) {
+      onUpdateNotification(true, val);
+      setSavedFeedback(true);
+      setTimeout(() => setSavedFeedback(false), 2000);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -120,6 +155,47 @@ export const SignRequestModal: React.FC<SignRequestModalProps> = ({
               <span>{copied ? 'הועתק!' : 'העתק'}</span>
             </button>
           </div>
+
+          {/* Email Notification Option */}
+          {!isSigned && (
+            <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={notifyChecked}
+                    onChange={(e) => handleToggleNotify(e.target.checked)}
+                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-neutral-300 cursor-pointer"
+                  />
+                  <span className="text-xs font-semibold text-neutral-800 flex items-center gap-1.5">
+                    <Bell className="w-3.5 h-3.5 text-blue-600" />
+                    קבל התראה במייל כשהדוח ייחתם
+                  </span>
+                </label>
+                {savedFeedback && (
+                  <span className="text-[11px] font-medium text-emerald-600 animate-in fade-in duration-150">
+                    נשמר ✓
+                  </span>
+                )}
+              </div>
+
+              {notifyChecked && (
+                <div className="relative">
+                  <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-neutral-400">
+                    <Mail className="w-3.5 h-3.5" />
+                  </div>
+                  <input
+                    type="email"
+                    value={emailVal}
+                    onChange={(e) => handleEmailChange(e.target.value)}
+                    placeholder="כתובת מייל לעדכון (למשל: teacher@school.org.il)"
+                    dir="ltr"
+                    className="w-full text-xs pr-8 pl-3 py-2 bg-white border border-neutral-300 rounded-lg text-neutral-800 focus:outline-none focus:border-blue-500 font-sans"
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="pt-2 border-t border-neutral-200">
             <span className="text-xs font-semibold text-neutral-500 block mb-2.5">
