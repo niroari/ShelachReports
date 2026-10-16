@@ -20,7 +20,7 @@ import {
   getEshelReport,
   saveEshelReport,
 } from '../lib/storage';
-import { MONTH_NAMES, DAY_NAMES } from '../lib/holidays';
+import { MONTH_NAMES, DAY_NAMES, getVacationLabel } from '../lib/holidays';
 import { generateMonthlyReportPdf, generateEshelPdf } from '../lib/pdf-export';
 import {
   exportMonthlyReportToExcel,
@@ -343,7 +343,8 @@ export default function Home() {
       const dateObj = new Date(year, month, d);
       const dayname = DAY_NAMES[dateObj.getDay()] || '';
       const entry = report.days[d] || {};
-      const purpose = entry.description || '';
+      const vacation = getVacationLabel(dateObj);
+      const purpose = entry.description || vacation || '';
       const fromPlace = settings.homeCity || settings.workplace || '';
 
       return {
@@ -444,7 +445,9 @@ export default function Home() {
 
     for (let d = 1; d <= daysInMonth; d++) {
       const entry = report.days[d];
-      if (entry && (entry.hours || entry.substitute || entry.kita) && !entry.description) {
+      const vacation = getVacationLabel(new Date(year, month, d));
+      const desc = entry?.description || vacation;
+      if (entry && (entry.hours || entry.substitute || entry.kita) && !desc) {
         missingDesc.push(d);
       }
     }

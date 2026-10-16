@@ -1098,6 +1098,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                   const entry = report.days[d] || {};
                   const date = new Date(year, month, d);
                   const weekdayName = DAY_NAMES[date.getDay()];
+                  const vacation = getVacationLabel(date);
                   const isChecked = transferModalDays.includes(d);
 
                   return (
@@ -1126,9 +1127,9 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                           <span className="font-bold text-neutral-800">
                             יום {weekdayName}&apos;, {d} ב{MONTH_NAMES[month]}
                           </span>
-                          {entry.description ? (
+                          {entry.description || vacation ? (
                             <div className="text-[11px] text-neutral-600 truncate max-w-[240px] sm:max-w-[320px]">
-                              {entry.description}
+                              {entry.description || vacation}
                             </div>
                           ) : (
                             <div className="text-[10px] text-neutral-400 italic">ללא תיאור פעולה</div>

@@ -2,7 +2,7 @@
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { TeacherSettings, MonthlyReportData, EshelReportData } from './types';
-import { MONTH_NAMES, RIGHT_NOTES } from './holidays';
+import { MONTH_NAMES, RIGHT_NOTES, getVacationLabel } from './holidays';
 
 export interface PdfExportResult {
   imgData: string;
@@ -54,8 +54,9 @@ export async function generateMonthlyReportPdf(
     else if (day === 7) extraNote = report.notes.tet || '';
     else if (day === 16) extraNote = report.notes.masaot || '';
     else if (day === 21) extraNote = report.notes.mishatzim || '';
-
     const combinedNote = extraNote ? `${rightNote}: ${extraNote}` : rightNote;
+    const vacation = getVacationLabel(date);
+    const displayDesc = entry.description || vacation || '';
 
     rowsHtml.push(`
       <tr style="height:20px;font-size:8pt;">
@@ -64,7 +65,7 @@ export async function generateMonthlyReportPdf(
         <td style="border:1px solid #000;padding:0px 2px 4px 2px;text-align:center;vertical-align:top;">${entry.hours || ''}</td>
         <td style="border:1px solid #000;padding:0px 2px 4px 2px;text-align:center;vertical-align:top;">${entry.substitute || ''}</td>
         <td style="border:1px solid #000;padding:0px 2px 4px 2px;text-align:center;vertical-align:top;">${entry.kita || ''}</td>
-        <td style="border:1px solid #000;padding:0px 4px 4px 4px;text-align:right;vertical-align:top;">${entry.description || ''}</td>
+        <td style="border:1px solid #000;padding:0px 4px 4px 4px;text-align:right;vertical-align:top;">${displayDesc}</td>
         <td style="border:1px solid #000;padding:0px 4px 4px 4px;text-align:right;vertical-align:top;">${entry.reason || ''}</td>
         <td style="border:1px solid #000;padding:0px 4px 4px 4px;text-align:right;font-size:7pt;vertical-align:top;">${combinedNote}</td>
       </tr>

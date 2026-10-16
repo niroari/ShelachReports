@@ -1,7 +1,7 @@
 // lib/excel-export.ts
 import * as XLSX from 'xlsx';
 import { MonthlyReportData, EshelReportData } from './types';
-import { MONTH_NAMES } from './holidays';
+import { MONTH_NAMES, getVacationLabel } from './holidays';
 
 export function exportMonthlyReportToExcel(report: MonthlyReportData, month: number, year: number) {
   const monthName = MONTH_NAMES[month] || `חודש_${month + 1}`;
@@ -19,13 +19,14 @@ export function exportMonthlyReportToExcel(report: MonthlyReportData, month: num
     if (weekday === 6) continue; // skip Saturday
 
     const entry = report.days[day] || {};
+    const vacation = getVacationLabel(date);
     rows.push([
       day,
       dayNames[weekday],
       entry.hours || '',
       entry.substitute || '',
       entry.kita || '',
-      entry.description || '',
+      entry.description || vacation || '',
       entry.reason || '',
     ]);
   }
