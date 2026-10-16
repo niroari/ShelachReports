@@ -901,16 +901,38 @@ export const ReportTab: React.FC<ReportTabProps> = ({
             label="חתימת מורה דיגיטלית (מצוירת בעכבר או באצבע)"
           />
         </div>
-        <div>
-          <label className="block text-xs font-semibold text-neutral-700 mb-1.5">תאריך מילוי הדוח</label>
-          <input
-            type="date"
-            value={report.date}
-            onChange={(e) => onUpdateReport((prev) => ({ ...prev, date: e.target.value }))}
-            className="w-full text-sm px-3 py-2 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
-          />
+        <div className="space-y-3">
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">תאריך מילוי הדוח</label>
+            <input
+              type="date"
+              value={report.date}
+              onChange={(e) => onUpdateReport((prev) => ({ ...prev, date: e.target.value }))}
+              className="w-full text-sm px-3 py-2 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white text-neutral-900"
+            />
+          </div>
+
+          {/* Copy of Send to Principal button */}
+          <button
+            type="button"
+            onClick={onRequestSignature}
+            className={`w-full flex items-center justify-center gap-2 text-xs md:text-sm font-semibold px-4 py-2.5 rounded-xl border transition shadow-2xs active:scale-95 cursor-pointer ${
+              hasPrincipalSig
+                ? 'border-emerald-300 bg-emerald-50/70 text-emerald-800 hover:bg-emerald-100/70'
+                : 'border-neutral-300 bg-white hover:bg-neutral-100 text-neutral-700'
+            }`}
+            title={hasPrincipalSig ? 'הדוח נחתם ע"י מנהל/ת בית הספר' : 'שלח קישור לחתימת מנהל/ת בית הספר'}
+          >
+            {hasPrincipalSig ? (
+              <Check className="w-4 h-4 text-emerald-600" />
+            ) : (
+              <Send className="w-3.5 h-3.5 text-neutral-600" />
+            )}
+            <span>{hasPrincipalSig ? 'נחתם ע"י מנהל/ת ✓' : 'שלח לחתימת מנהל/ת'}</span>
+          </button>
+
           {hasPrincipalSig && (
-            <div className="mt-3 bg-purple-50 border border-purple-200 rounded-xl p-2.5 text-xs text-purple-800 flex items-center justify-between gap-2">
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-2.5 text-xs text-purple-800 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-purple-600 shrink-0" />
                 <span>דוח זה כולל חתימת מנהל/ת דיגיטלית שתתווסף ל-PDF</span>
