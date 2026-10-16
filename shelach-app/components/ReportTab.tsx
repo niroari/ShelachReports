@@ -18,6 +18,7 @@ import {
   Edit3,
   HelpCircle,
   Sparkles,
+  ReceiptText,
 } from 'lucide-react';
 
 interface ReportTabProps {
@@ -35,6 +36,7 @@ interface ReportTabProps {
   hasPrincipalSig?: boolean;
   principalSigImg?: string;
   onDeletePrincipalSig?: () => void;
+  onTransferToEshel?: (days: number[]) => void;
 }
 
 export const ReportTab: React.FC<ReportTabProps> = ({
@@ -52,6 +54,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
   hasPrincipalSig,
   principalSigImg,
   onDeletePrincipalSig,
+  onTransferToEshel,
 }) => {
   const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table');
 
@@ -59,6 +62,10 @@ export const ReportTab: React.FC<ReportTabProps> = ({
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+
+  // Transfer to Eshel Modal state
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [transferModalDays, setTransferModalDays] = useState<number[]>([]);
 
   // Modal state: list of days being edited (single day or multiple days)
   const [modalDays, setModalDays] = useState<number[] | null>(null);
@@ -306,6 +313,28 @@ export const ReportTab: React.FC<ReportTabProps> = ({
             <span>ייצא אקסל ⬇</span>
           </button>
           <button
+            type="button"
+            onClick={() => {
+              if (selectedDays.length > 0) {
+                if (confirm(`האם להעביר ${selectedDays.length} ימים שנבחרו לדוח אש"ל?`)) {
+                  onTransferToEshel?.(selectedDays);
+                }
+              } else {
+                const daysWithData = workingDays.filter((d) => {
+                  const entry = report.days[d];
+                  return !!(entry?.description || entry?.hours);
+                });
+                setTransferModalDays(daysWithData.length > 0 ? daysWithData : []);
+                setIsTransferModalOpen(true);
+              }
+            }}
+            className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs md:text-sm px-3.5 py-1.5 rounded-lg shadow-xs transition active:scale-95 cursor-pointer"
+            title="העבר ימי פעילות לדוח אש&quot;ל"
+          >
+            <ReceiptText className="w-4 h-4" />
+            <span>העבר לדוח אש&quot;ל</span>
+          </button>
+          <button
             onClick={onRequestSignature}
             className={`flex items-center gap-1.5 font-semibold text-xs md:text-sm px-3.5 py-1.5 rounded-lg shadow-xs transition active:scale-95 cursor-pointer ${
               hasPrincipalSig
@@ -403,6 +432,18 @@ export const ReportTab: React.FC<ReportTabProps> = ({
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>ערוך ימים אלו במקביל</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm(`האם להעביר ${selectedDays.length} ימים שנבחרו לדוח אש"ל?`)) {
+                  onTransferToEshel?.(selectedDays);
+                }
+              }}
+              className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs md:text-sm font-bold px-3.5 py-1.5 rounded-lg shadow-xs transition active:scale-95 cursor-pointer"
+            >
+              <ReceiptText className="w-3.5 h-3.5" />
+              <span>העבר לדוח אש&quot;ל</span>
             </button>
           </div>
         )}
@@ -988,6 +1029,150 @@ export const ReportTab: React.FC<ReportTabProps> = ({
               >
                 הבנתי, תודה!
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Transfer to Eshel Modal */}
+      {isTransferModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg border border-neutral-200 overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="p-4 bg-neutral-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ReceiptText className="w-5 h-5 text-amber-400" />
+                <h3 className="font-bold text-sm md:text-base">העברת ימי פעילות לדוח אש&quot;ל</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsTransferModalOpen(false)}
+                className="text-neutral-400 hover:text-white p-1 rounded-lg transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-4 space-y-3 overflow-y-auto flex-1">
+              <p className="text-xs text-neutral-600">
+                סמנו את הימים שברצונכם להעביר לטופס האש&quot;ל. התאריך, היום בשבוע ותיאור הפעולה יועברו ישירות.
+              </p>
+
+              {/* Quick select buttons */}
+              <div className="flex items-center gap-2 flex-wrap text-xs pb-1 border-b border-neutral-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const daysWithData = workingDays.filter((d) => {
+                      const entry = report.days[d];
+                      return !!(entry?.description || entry?.hours);
+                    });
+                    setTransferModalDays(daysWithData);
+                  }}
+                  className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg font-medium transition cursor-pointer"
+                >
+                  בחר ימים עם פעילות
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTransferModalDays([...workingDays])}
+                  className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg font-medium transition cursor-pointer"
+                >
+                  בחר הכל
+                </button>
+                {transferModalDays.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setTransferModalDays([])}
+                    className="px-2.5 py-1 text-neutral-500 hover:text-neutral-700 transition cursor-pointer"
+                  >
+                    נקה בחירה
+                  </button>
+                )}
+              </div>
+
+              {/* Days List */}
+              <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+                {workingDays.map((d) => {
+                  const entry = report.days[d] || {};
+                  const date = new Date(year, month, d);
+                  const weekdayName = DAY_NAMES[date.getDay()];
+                  const isChecked = transferModalDays.includes(d);
+
+                  return (
+                    <label
+                      key={d}
+                      className={`flex items-center justify-between p-2 rounded-xl border text-xs cursor-pointer transition select-none ${
+                        isChecked
+                          ? 'bg-amber-50/70 border-amber-300'
+                          : 'bg-neutral-50/50 border-neutral-200 hover:bg-neutral-100/60'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setTransferModalDays((prev) => [...prev, d]);
+                            } else {
+                              setTransferModalDays((prev) => prev.filter((x) => x !== d));
+                            }
+                          }}
+                          className="w-4 h-4 text-amber-600 rounded border-neutral-300 focus:ring-amber-500 cursor-pointer"
+                        />
+                        <div>
+                          <span className="font-bold text-neutral-800">
+                            יום {weekdayName}&apos;, {d} ב{MONTH_NAMES[month]}
+                          </span>
+                          {entry.description ? (
+                            <div className="text-[11px] text-neutral-600 truncate max-w-[240px] sm:max-w-[320px]">
+                              {entry.description}
+                            </div>
+                          ) : (
+                            <div className="text-[10px] text-neutral-400 italic">ללא תיאור פעולה</div>
+                          )}
+                        </div>
+                      </div>
+                      {entry.hours && (
+                        <span className="text-[10px] bg-neutral-200 text-neutral-700 px-2 py-0.5 rounded-full font-semibold">
+                          {entry.hours} שעות
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-3 bg-neutral-50 border-t border-neutral-200 flex items-center justify-between">
+              <span className="text-xs font-semibold text-neutral-600">
+                נבחרו: {transferModalDays.length} ימים
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsTransferModalOpen(false)}
+                  className="px-3 py-1.5 text-xs text-neutral-600 hover:text-neutral-800 rounded-lg hover:bg-neutral-200 transition cursor-pointer"
+                >
+                  ביטול
+                </button>
+                <button
+                  type="button"
+                  disabled={transferModalDays.length === 0}
+                  onClick={() => {
+                    const toTransfer = [...transferModalDays].sort((a, b) => a - b);
+                    setIsTransferModalOpen(false);
+                    onTransferToEshel?.(toTransfer);
+                  }}
+                  className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 disabled:bg-neutral-300 disabled:cursor-not-allowed text-white font-bold text-xs px-4 py-1.5 rounded-lg shadow-xs transition active:scale-95 cursor-pointer"
+                >
+                  <ReceiptText className="w-3.5 h-3.5" />
+                  <span>העבר לדוח אש&quot;ל</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

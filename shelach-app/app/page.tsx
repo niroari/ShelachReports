@@ -20,7 +20,7 @@ import {
   getEshelReport,
   saveEshelReport,
 } from '../lib/storage';
-import { MONTH_NAMES } from '../lib/holidays';
+import { MONTH_NAMES, DAY_NAMES } from '../lib/holidays';
 import { generateMonthlyReportPdf, generateEshelPdf } from '../lib/pdf-export';
 import {
   exportMonthlyReportToExcel,
@@ -330,6 +330,111 @@ export default function Home() {
     }
   };
 
+  // Transfer selected days from Monthly Report to Eshel
+  const handleTransferToEshel = (daysToTransfer: number[]) => {
+    if (!daysToTransfer || daysToTransfer.length === 0) return;
+
+    const sortedDays = [...daysToTransfer].sort((a, b) => a - b);
+    const monthStr = String(month + 1).padStart(2, '0');
+
+    const items = sortedDays.map((d) => {
+      const dayStr = String(d).padStart(2, '0');
+      const dateFormatted = `${year}-${monthStr}-${dayStr}`;
+      const dateObj = new Date(year, month, d);
+      const dayname = DAY_NAMES[dateObj.getDay()] || '';
+      const entry = report.days[d] || {};
+      const purpose = entry.description || '';
+      const fromPlace = settings.homeCity || settings.workplace || '';
+
+      return {
+        date: dateFormatted,
+        dayname,
+        purpose,
+        fromPlace,
+        toPlace: '',
+        fromTime: '',
+        toTime: '',
+        beinIri: false,
+        iri: false,
+        boker: false,
+        tsaharaim: false,
+        erev: false,
+        lina: '',
+        total: '',
+      };
+    });
+
+    const currentRows = [...eshel.rows];
+    while (currentRows.length < 20) {
+      currentRows.push({
+        date: '',
+        dayname: '',
+        fromTime: '',
+        toTime: '',
+        fromPlace: '',
+        toPlace: '',
+        purpose: '',
+        beinIri: false,
+        iri: false,
+        boker: false,
+        tsaharaim: false,
+        erev: false,
+        lina: '',
+        total: '',
+      });
+    }
+
+    const existingDates = new Set(currentRows.map((r) => r.date).filter(Boolean));
+    const newItems = items.filter((item) => !existingDates.has(item.date));
+    const alreadyExistingCount = items.length - newItems.length;
+
+    if (newItems.length === 0) {
+      alert('כל הימים שנבחרו כבר קיימים בדוח אש"ל.');
+      return;
+    }
+
+    const newRows = [...currentRows];
+    let itemIdx = 0;
+
+    for (let i = 0; i < 20 && itemIdx < newItems.length; i++) {
+      const r = newRows[i];
+      const isEmpty = !r.date && !r.purpose && !r.total && !r.fromTime && !r.toTime;
+      if (isEmpty) {
+        newRows[i] = {
+          ...r,
+          ...newItems[itemIdx],
+        };
+        itemIdx++;
+      }
+    }
+
+    const successfullyTransferred = itemIdx;
+    const overflowCount = newItems.length - itemIdx;
+
+    if (successfullyTransferred === 0) {
+      alert('לא נותרו שורות פנויות בטופס האש"ל (הטופס מכיל 20 שורות).');
+      return;
+    }
+
+    handleUpdateEshel((prev) => ({
+      ...prev,
+      rows: newRows,
+    }));
+
+    let msg = `הועברו ${successfullyTransferred} ימים בהצלחה לדוח אש"ל.`;
+    if (alreadyExistingCount > 0) {
+      msg += `\n(${alreadyExistingCount} ימים כבר היו קיימים בטופס ודולגו)`;
+    }
+    if (overflowCount > 0) {
+      msg += `\n(${overflowCount} ימים לא הועברו כי הטופס הגיע למגבלה של 20 שורות)`;
+    }
+    msg += '\n\nהאם לעבור כעת לצפייה ועריכה בטופס האש"ל?';
+
+    if (confirm(msg)) {
+      setActiveTab('eshel');
+    }
+  };
+
   // Export Monthly Report PDF with preview
   const handleExportMonthlyPdf = async () => {
     // Check for warnings
@@ -510,6 +615,7 @@ export default function Home() {
             hasPrincipalSig={signDocStatus === 'signed'}
             principalSigImg={principalSigImg}
             onDeletePrincipalSig={handleDeletePrincipalSig}
+            onTransferToEshel={handleTransferToEshel}
           />
         )}
         {activeTab === 'eshel' && (
