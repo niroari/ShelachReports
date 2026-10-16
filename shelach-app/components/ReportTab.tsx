@@ -371,12 +371,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                   onTransferToEshel?.(selectedDays);
                 }
               } else {
-                const daysWithData = workingDays.filter((d) => {
-                  const entry = report.days[d];
-                  const vacation = getVacationLabel(new Date(year, month, d));
-                  return !!(entry?.description || entry?.hours || vacation);
-                });
-                setTransferModalDays(daysWithData.length > 0 ? daysWithData : []);
+                setTransferModalDays([]);
                 setIsTransferModalOpen(true);
               }
             }}
@@ -1073,19 +1068,6 @@ export const ReportTab: React.FC<ReportTabProps> = ({
 
               {/* Quick select buttons */}
               <div className="flex items-center gap-2 flex-wrap text-xs pb-1 border-b border-neutral-100">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const daysWithData = workingDays.filter((d) => {
-                      const entry = report.days[d];
-                      return !!(entry?.description || entry?.hours);
-                    });
-                    setTransferModalDays(daysWithData);
-                  }}
-                  className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg font-medium transition cursor-pointer"
-                >
-                  בחר ימים עם פעילות
-                </button>
                 <button
                   type="button"
                   onClick={() => setTransferModalDays([...workingDays])}
