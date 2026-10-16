@@ -240,15 +240,15 @@ export const ReportTab: React.FC<ReportTabProps> = ({
   return (
     <div className="max-w-6xl mx-auto py-4 px-2 sm:px-4 space-y-4">
       {/* Top Controls Card */}
-      <div className="bg-white rounded-2xl p-4 md:p-5 shadow-xs border border-neutral-200 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl p-3 md:p-4 shadow-xs border border-neutral-200 flex flex-wrap items-center justify-between gap-3">
         {/* Date Selector */}
-        <div className="flex items-center gap-2 md:gap-4 flex-wrap">
+        <div className="flex items-center gap-2 md:gap-3 flex-wrap">
           <div className="flex items-center gap-1.5">
             <label className="text-xs md:text-sm font-semibold text-neutral-600">חודש:</label>
             <select
               value={month}
               onChange={(e) => onMonthChange(parseInt(e.target.value))}
-              className="text-xs md:text-sm font-semibold border border-neutral-300 rounded-lg px-2.5 py-1.5 bg-white text-neutral-800 focus:ring-2 focus:ring-blue-500 focus:outline-hidden cursor-pointer"
+              className="text-xs md:text-sm font-semibold border border-neutral-300 rounded-xl px-2.5 py-1.5 bg-white text-neutral-800 focus:ring-2 focus:ring-blue-500 focus:outline-hidden cursor-pointer"
             >
               {[8, 9, 10, 11, 0, 1, 2, 3, 4, 5].map((m) => (
                 <option key={m} value={m}>
@@ -263,7 +263,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
             <select
               value={year}
               onChange={(e) => onYearChange(parseInt(e.target.value))}
-              className="text-xs md:text-sm font-semibold border border-neutral-300 rounded-lg px-2.5 py-1.5 bg-white text-neutral-800 focus:ring-2 focus:ring-blue-500 focus:outline-hidden cursor-pointer"
+              className="text-xs md:text-sm font-semibold border border-neutral-300 rounded-xl px-2.5 py-1.5 bg-white text-neutral-800 focus:ring-2 focus:ring-blue-500 focus:outline-hidden cursor-pointer"
             >
               {years.map((y) => (
                 <option key={y} value={y}>
@@ -296,22 +296,73 @@ export const ReportTab: React.FC<ReportTabProps> = ({
           </button>
         </div>
 
-        {/* Export and Action Buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
+        {/* Action Buttons: Unified Minimal Style */}
+        <div className="flex items-center gap-2">
+          {/* PDF Export */}
           <button
+            type="button"
             onClick={onExportPdf}
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs md:text-sm px-3.5 py-1.5 rounded-lg shadow-xs transition active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-xl border border-neutral-300 bg-white hover:bg-neutral-100 text-neutral-700 transition shadow-2xs active:scale-95 cursor-pointer"
+            title="ייצא דוח חודשי כקובץ PDF"
           >
-            <FileText className="w-4 h-4" />
-            <span>ייצא PDF ⬇</span>
+            <FileText className="w-4 h-4 text-neutral-600" />
+            <span>ייצא PDF</span>
           </button>
+
+          {/* Principal Signature */}
           <button
-            onClick={onExportExcel}
-            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs md:text-sm px-3.5 py-1.5 rounded-lg shadow-xs transition active:scale-95 cursor-pointer"
+            type="button"
+            onClick={onRequestSignature}
+            className={`flex items-center gap-1.5 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-xl border transition shadow-2xs active:scale-95 cursor-pointer ${
+              hasPrincipalSig
+                ? 'border-emerald-300 bg-emerald-50/70 text-emerald-800 hover:bg-emerald-100/70'
+                : 'border-neutral-300 bg-white hover:bg-neutral-100 text-neutral-700'
+            }`}
+            title={hasPrincipalSig ? 'הדוח נחתם ע"י מנהל/ת בית הספר' : 'שלח קישור לחתימת מנהל/ת בית הספר'}
           >
-            <FileSpreadsheet className="w-4 h-4" />
-            <span>ייצא אקסל ⬇</span>
+            {hasPrincipalSig ? (
+              <Check className="w-4 h-4 text-emerald-600" />
+            ) : (
+              <Send className="w-3.5 h-3.5 text-neutral-600" />
+            )}
+            <span>{hasPrincipalSig ? 'נחתם ✓' : 'חתימת מנהל/ת'}</span>
           </button>
+
+          {/* Clear Month */}
+          <button
+            type="button"
+            onClick={onClearReport}
+            className="p-2 rounded-xl border border-neutral-300 bg-white hover:bg-red-50 hover:border-red-200 text-neutral-400 hover:text-red-600 transition shadow-2xs active:scale-95 cursor-pointer"
+            title="נקה נתוני חודש נוכחי"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Universal Multi-Day Batch Edit Toolbar & Actions */}
+      <div className="bg-white rounded-2xl p-3 md:p-4 shadow-xs border border-neutral-200 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Multi-Day Selection Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              const nextMode = !isMultiSelectMode;
+              setIsMultiSelectMode(nextMode);
+              if (!nextMode) setSelectedDays([]);
+            }}
+            className={`flex items-center gap-1.5 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-xl border transition shadow-2xs cursor-pointer ${
+              isMultiSelectMode
+                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                : 'bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-100'
+            }`}
+            title={isMultiSelectMode ? 'בטל מצב בחירה מרובה' : 'הפעל מצב בחירת מספר ימים בטבלה או בלוח השנה'}
+          >
+            <CheckSquare className="w-4 h-4" />
+            <span>{isMultiSelectMode ? 'מצב בחירה פעיל ✓' : 'בחירת ימים'}</span>
+          </button>
+
+          {/* Transfer to Eshel Button */}
           <button
             type="button"
             onClick={() => {
@@ -322,68 +373,29 @@ export const ReportTab: React.FC<ReportTabProps> = ({
               } else {
                 const daysWithData = workingDays.filter((d) => {
                   const entry = report.days[d];
-                  return !!(entry?.description || entry?.hours);
+                  const vacation = getVacationLabel(new Date(year, month, d));
+                  return !!(entry?.description || entry?.hours || vacation);
                 });
                 setTransferModalDays(daysWithData.length > 0 ? daysWithData : []);
                 setIsTransferModalOpen(true);
               }
             }}
-            className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs md:text-sm px-3.5 py-1.5 rounded-lg shadow-xs transition active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-xl border border-neutral-300 bg-white hover:bg-neutral-100 text-neutral-700 transition shadow-2xs cursor-pointer active:scale-95"
             title="העבר ימי פעילות לדוח אש&quot;ל"
           >
-            <ReceiptText className="w-4 h-4" />
-            <span>העבר לדוח אש&quot;ל</span>
-          </button>
-          <button
-            onClick={onRequestSignature}
-            className={`flex items-center gap-1.5 font-semibold text-xs md:text-sm px-3.5 py-1.5 rounded-lg shadow-xs transition active:scale-95 cursor-pointer ${
-              hasPrincipalSig
-                ? 'bg-purple-700 text-white hover:bg-purple-800'
-                : 'bg-neutral-800 hover:bg-neutral-900 text-white'
-            }`}
-          >
-            <Send className="w-3.5 h-3.5" />
-            <span>{hasPrincipalSig ? 'נחתם ע"י מנהל/ת ✓' : 'שלח לחתימת מנהל/ת'}</span>
-          </button>
-          <button
-            onClick={onClearReport}
-            className="flex items-center gap-1 text-neutral-500 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition cursor-pointer text-xs"
-            title="נקה נתוני חודש נוכחי"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Universal Multi-Day Batch Edit Toolbar & Instructions */}
-      <div className="bg-white rounded-2xl p-3 md:p-4 shadow-xs border border-neutral-200 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            type="button"
-            onClick={() => {
-              const nextMode = !isMultiSelectMode;
-              setIsMultiSelectMode(nextMode);
-              if (!nextMode) setSelectedDays([]);
-            }}
-            className={`flex items-center gap-1.5 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-lg border transition cursor-pointer ${
-              isMultiSelectMode
-                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                : 'bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-100'
-            }`}
-          >
-            <CheckSquare className="w-4 h-4" />
-            <span>{isMultiSelectMode ? 'מצב בחירה מרובה פעיל ✓' : 'בחירת מספר ימים'}</span>
+            <ReceiptText className="w-4 h-4 text-neutral-600" />
+            <span>העבר לאש&quot;ל</span>
           </button>
 
-          {/* Instructions Button (Modal trigger) */}
+          {/* Quick Help Question Mark Icon Button */}
           <button
             type="button"
             onClick={() => setIsGuideOpen(true)}
-            className="flex items-center gap-1.5 text-xs md:text-sm font-semibold text-neutral-700 hover:text-blue-600 bg-neutral-50 hover:bg-neutral-100 border border-neutral-300 rounded-lg px-3 py-1.5 transition cursor-pointer"
-            title="איך למלא ערך זהה במספר ימים במקביל?"
+            className="p-1.5 text-neutral-400 hover:text-blue-600 bg-white hover:bg-neutral-100 border border-neutral-300 rounded-xl transition cursor-pointer shadow-2xs"
+            title="הוראות למילוי מהיר"
+            aria-label="הוראות למילוי מהיר"
           >
-            <HelpCircle className="w-4 h-4 text-blue-600" />
-            <span>הוראות למילוי מהיר</span>
+            <HelpCircle className="w-4 h-4" />
           </button>
 
           {isMultiSelectMode && (
@@ -394,7 +406,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                   key={w}
                   type="button"
                   onClick={() => selectAllWeekday(w)}
-                  className="px-2 py-1 bg-white border border-neutral-300 hover:bg-neutral-100 rounded text-neutral-700 font-medium cursor-pointer transition"
+                  className="px-2 py-1 bg-white border border-neutral-300 hover:bg-neutral-100 rounded-lg text-neutral-700 font-medium cursor-pointer transition"
                 >
                   ימי {DAY_NAMES[w]}&apos;
                 </button>
@@ -402,7 +414,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
               <button
                 type="button"
                 onClick={selectAllWorkdays}
-                className="px-2 py-1 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 rounded font-semibold cursor-pointer transition"
+                className="px-2 py-1 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 rounded-lg font-semibold cursor-pointer transition"
               >
                 כל החודש
               </button>
@@ -410,7 +422,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                 <button
                   type="button"
                   onClick={() => setSelectedDays([])}
-                  className="px-2 py-1 bg-neutral-200 hover:bg-neutral-300 text-neutral-700 rounded font-medium cursor-pointer transition"
+                  className="px-2 py-1 bg-neutral-200 hover:bg-neutral-300 text-neutral-700 rounded-lg font-medium cursor-pointer transition"
                 >
                   נקה בחירה
                 </button>
@@ -428,10 +440,10 @@ export const ReportTab: React.FC<ReportTabProps> = ({
             <button
               type="button"
               onClick={openBatchModal}
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-bold px-3.5 py-1.5 rounded-lg shadow-xs transition active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 text-xs md:text-sm font-bold px-3.5 py-1.5 rounded-xl border border-blue-600 bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition active:scale-95 cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5" />
-              <span>ערוך ימים אלו במקביל</span>
+              <span>ערוך במקביל</span>
             </button>
             <button
               type="button"
@@ -440,10 +452,10 @@ export const ReportTab: React.FC<ReportTabProps> = ({
                   onTransferToEshel?.(selectedDays);
                 }
               }}
-              className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs md:text-sm font-bold px-3.5 py-1.5 rounded-lg shadow-xs transition active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 text-xs md:text-sm font-bold px-3.5 py-1.5 rounded-xl border border-neutral-300 bg-white hover:bg-neutral-100 text-neutral-800 shadow-2xs transition active:scale-95 cursor-pointer"
             >
-              <ReceiptText className="w-3.5 h-3.5" />
-              <span>העבר לדוח אש&quot;ל</span>
+              <ReceiptText className="w-3.5 h-3.5 text-neutral-600" />
+              <span>העבר לאש&quot;ל</span>
             </button>
           </div>
         )}
